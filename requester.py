@@ -9,6 +9,9 @@ parser = argparse.ArgumentParser(description="Request part of a file in packets 
 
 parser.add_argument("-p", "--port", type=int, required=True, dest="port")
 parser.add_argument("-o", "--file_option", type=str, required=True, dest="fileName")
+parser.add_argument("-f", "--f_hostname", type=str, required=True, dest="emulatorName")
+parser.add_argument("-e", "--f_port", type=int, required=True, dest="emulatorPort")
+parser.add_argument("-w", "--window", type=int, required=True, dest="window")
 
 args = parser.parse_args()
 
