@@ -14,6 +14,10 @@ parser.add_argument("-g", "--requester_port", type=int, required=True, dest="rPo
 parser.add_argument("-r", "--rate", type=int, required=True, dest="rate")
 parser.add_argument("-q", "--seq_no", type=int, required=True, dest="seqNo")
 parser.add_argument("-l", "--length", type=int, required=True, dest="length")
+parser.add_argument("-f", "--f_hostname", type=str, required=True, dest="emulatorName")
+parser.add_argument("-e", "--f_port", type=int, required=True, dest="emulatorPort")
+parser.add_argument("-i", "--priority", type=int, required=True, dest="priotity")
+parser.add_argument("-t", "--timeout", type=int, required=True, dest="timeout")
 
 args = parser.parse_args()
 
