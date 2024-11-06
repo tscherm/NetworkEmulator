@@ -5,6 +5,7 @@ import os
 import ctypes
 import sys
 import traceback
+import ipaddress 
 
 # set up arg
 parser = argparse.ArgumentParser(description="Send part of a file in packets to a reciever")
@@ -113,13 +114,23 @@ def handleReq(data, addr):
     seqNum = args.seqNo
     sizeLeft = toSendSize
     for i in range(numPackets):
+        # old sender stuff
         # make header
         pSize = ctypes.c_uint32(args.length).value if sizeLeft >= ctypes.c_uint32(args.length).value else sizeLeft
         header = b'D' + socket.htonl(seqNum).to_bytes(4, 'big') + socket.htonl(pSize).to_bytes(4, 'big')
 
         # get payload and add header to packet
         payload = toSend.read(pSize).encode('utf-8')
-        packet = header + payload
+        l2Packet = header + payload
+
+        # new sender stuff
+        l3Prior = socket.htonl(args.priority).to_bytes(1, 'big')
+        srcAdr = socket.htonl(ipaddress.ip_address(ipAddr)).to_bytes(4, 'big') + socket.htonl(args.sPort).to_bytes(2, 'big')
+        destAdr = socket.htonl(ipaddress.ip_address(addr)).to_bytes(4, 'big') + socket.htonl(args.rPort).to_bytes(2, 'big')
+        l3Len = socket.htonl((pSize + 9)).to_bytes(4, 'big')
+        packet = l3Prior + srcAdr + destAdr + l3Len + l2Packet
+        # for testing
+        print(packet)
 
         lastTime = sendPacketTimed(packet, addr, lastTime)
 
