@@ -104,6 +104,15 @@ def readTracker():
             files[k] = tempArr
 
 
+# send acknowledgement 
+def sendAck(destIP, port, seq):
+    pt = b'A'
+    l = 0
+
+    header = pt + socket.htonl(seq).to_bytes(4, 'big') + socket.htonl(l).to_bytes(4, 'big')
+    packet = header
+    soc.sendto(packet, (destIP, port))
+
 # handle L3 packet
 # returns L2 packet
 def handleL3Packet(data, addr, time):
@@ -147,6 +156,8 @@ def handlePacket(l3Data, addr, time):
     currSizeBytes += pLen
     global finalSizeBytes
     printPacket("DATA", time, addr[0], addr[1], seqNo, pLen, currSizeBytes / finalSizeBytes, payload)
+
+
     return True
 
 # prints summary of what specific sender sent
