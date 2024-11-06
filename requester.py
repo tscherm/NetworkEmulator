@@ -104,10 +104,27 @@ def readTracker():
             files[k] = tempArr
 
 
+# handle L3 packet
+# returns L2 packet
+def handleL3Packet(data, addr, time):
+    print(time)
+
+    priority = data[0]
+    srcIP = socket.ntohl(int.from_bytes(data[1:5], 'big'))
+    srcPort = socket.ntohl(int.from_bytes(data[5:7], 'big'))
+    destIP = socket.ntohl(int.from_bytes(data[7:11], 'big'))
+    destPort = socket.ntohl(int.from_bytes(data[11:13], 'big'))
+    l3Len = socket.ntohl(int.from_bytes(data[13:17], 'big'))
+
+    return data[17:]
+
 # handles a packet from sender
 # returns false if it gets something other than data packet (End packet)
 # returns true if it gets a data packet
-def handlePacket(data, addr, time):
+def handlePacket(l3Data, addr, time):
+    # handle l3
+    data = handleL3Packet(l3Data)
+
     # get header values
     pType = data[0]
     seqNo = socket.ntohl(int.from_bytes(data[1:5], 'big'))
