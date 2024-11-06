@@ -111,7 +111,7 @@ def handleReq(data, addr):
 
     # iterate over chunks of data and send it
     lastTime = datetime.now() - timedelta(days=1)
-    seqNum = args.seqNo
+    seqNum = 1
     sizeLeft = toSendSize
     for i in range(numPackets):
         # old sender stuff
@@ -136,7 +136,7 @@ def handleReq(data, addr):
 
         # print packet info
         printPacket("DATA", lastTime, addr, seqNum, pSize, payload)
-        seqNum += pSize
+        seqNum += 1
         sizeLeft -= pSize
 
     # send END packet
