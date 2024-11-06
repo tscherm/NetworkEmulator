@@ -125,14 +125,21 @@ def handleL3Packet(data, addr, time):
     destPort = socket.ntohl(int.from_bytes(data[11:13], 'big'))
     l3Len = socket.ntohl(int.from_bytes(data[13:17], 'big'))
 
+    if destIP != ipAddr or destPort != args.port:
+        #wrong place
+        return 0
+
     return data[17:]
 
 # handles a packet from sender
-# returns false if it gets something other than data packet (End packet)
+# returns false if it gets something other than data packet (End packet or wrong dest)
 # returns true if it gets a data packet
 def handlePacket(l3Data, addr, time):
     # handle l3
     data = handleL3Packet(l3Data)
+
+    if data == 0:
+        return False
 
     # get header values
     pType = data[0]
@@ -155,7 +162,9 @@ def handlePacket(l3Data, addr, time):
     global currSizeBytes
     currSizeBytes += pLen
     global finalSizeBytes
-    printPacket("DATA", time, addr[0], addr[1], seqNo, pLen, currSizeBytes / finalSizeBytes, payload)
+
+    # supress this
+    # printPacket("DATA", time, addr[0], addr[1], seqNo, pLen, currSizeBytes / finalSizeBytes, payload)
 
 
     return True
