@@ -113,9 +113,9 @@ def sendAck(destIP, port, seq):
     packet = header
     soc.sendto(packet, (destIP, port))
 
-# handle L3 packet
-# returns L2 packet
-def handleL3Packet(data, addr, time):
+# handle big packet
+# returns small packet
+def handleBigPacket(data, addr, time):
     print(time)
 
     priority = data[0]
@@ -123,7 +123,7 @@ def handleL3Packet(data, addr, time):
     srcPort = socket.ntohl(int.from_bytes(data[5:7], 'big'))
     destIP = socket.ntohl(int.from_bytes(data[7:11], 'big'))
     destPort = socket.ntohl(int.from_bytes(data[11:13], 'big'))
-    l3Len = socket.ntohl(int.from_bytes(data[13:17], 'big'))
+    bigLen = socket.ntohl(int.from_bytes(data[13:17], 'big'))
 
     if destIP != ipAddr or destPort != args.port:
         #wrong place
@@ -134,9 +134,9 @@ def handleL3Packet(data, addr, time):
 # handles a packet from sender
 # returns false if it gets something other than data packet (End packet or wrong dest)
 # returns true if it gets a data packet
-def handlePacket(l3Data, addr, time):
-    # handle l3
-    data = handleL3Packet(l3Data)
+def handlePacket(pack, addr, time):
+    # handle big packet
+    data = handleBigPacket(pack)
 
     if data == 0:
         return False
