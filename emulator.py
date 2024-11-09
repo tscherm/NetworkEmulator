@@ -50,7 +50,7 @@ except:
 # socket to send from (not the same one)
 sendSoc = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-# these lists will have (packet, timeToSend)
+# these lists will have (packet, (destIP, destSoc), timeToSend)
 queue = [list(), list(), list()]
 
 # variable for determining if emulator should keep listening for packets
@@ -138,16 +138,39 @@ def queuePacket(pack, addr, time):
 # look at queue and find a packet to send if one is available
 # steps 4 - 7
 # return 1 if a packet is sent
-# return 0 if no packet is in queue
+# return 0 if no packet is in queue or if a packet is being waited on
 # return -1 if there is an error
 def sendPacket():
     for q in queue:
-        for p in q:
-            pass
+        # check if there are packets in this queue
+        if len(q) <= 0:
+            continue
+
+        toSend = q[0]
+
+        # check if packet can be sent
+        if toSend[2] > datetime.now():
+            # try to send packet
+            try:
+                recSoc.sendto(toSend[0], toSend[1])
+
+                # take packet off queue
+                q.pop(0)
+                return 1
+            except:
+                logging.error(f"Something went wrong when sending packet to {toSend[1][0]}:{toSend[1][1]}.")
+                logging.error(traceback.format_exc())
+                return -1
+        else:
+            # waiting on packet
+            return 0
+    
+    # no packets in queue
+    return 0
     
 
 # wait for packets
-# step 1 and 
+# step 1 and controls other steps
 def getPackets():
     while isListening:
         try:
