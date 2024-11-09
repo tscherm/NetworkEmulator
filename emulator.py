@@ -3,6 +3,8 @@ import sys
 import socket
 from datetime import datetime, timedelta
 import traceback
+import logging
+import random
 
 parser = argparse.ArgumentParser(description="Network Emulator")
 
@@ -13,12 +15,20 @@ parser.add_argument("-l", "--log", type=str, required=True, dest="logName")
 
 args = parser.parse_args()
 
+# configure logging
+try:
+    logging.basicConfig(filename=args.logName, encoding='utf-8', level=logging.DEBUG)
+except:
+    print("An error occured while trying to configure logging.")
+    print(traceback.format_exc())
+    sys.exit()
+
 # check port numbers
 if 2049 > args.port or args.port > 65536:
-    print("Sender port out of range.")
+    logging.critical("Sender port out of range.")
     sys.exit()
 if 2049 > args.port or args.port > 65536:
-    print("Requester port out of range.")
+    logging.critical("Requester port out of range.")
     sys.exit()
 
 # open port (to listen on only?)
@@ -27,13 +37,14 @@ ipAddr = socket.gethostbyname(hostname)
 
 reqAddr = (ipAddr, args.port)
 
+# open socket
 try:
     recSoc = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     recSoc.bind(reqAddr)
     recSoc.settimeout(0)
 except:
-    print("An error occured binding the socket")
-    print(traceback.format_exc())
+    logging.critical("An error occured binding the socket")
+    logging.critical(traceback.format_exc())
     sys.exit()
 
 # socket to send from (not the same one)
@@ -45,6 +56,8 @@ queue = [list(), list(), list()]
 # variable for determining if emulator should keep listening for packets
 isListening = True
 
+# set up random
+random.seed(9)
 
 # function to read the forwarding table
 def readTracker():
@@ -72,26 +85,41 @@ def readTracker():
             # get new line
             line = ftable.readline()
 
+# write logs
+def logPacket(pack, recAddr, destAddr, recTime, reason):
+
+    logging.info(f"Packet recieved at {recTime} and dropped at {datetime.now()} because {reason}.")
+
+    if destAddr is None:
+        logging.info(f"Recieved from: {recAddr}\n")
+    else:
+        logging.info(f"Recieved from: {recAddr}\nTo be sent to: {destAddr}\n")
+
+    logging.info(f"{pack}")
+
 # queue the packet and if possible
 # steps 2 & 3
 # return 1 if packet is added to queue
 # return 0 if the packet had to be dropped
 # return -1 if there is an error
-def queuePacket(pack, time):
+def queuePacket(pack, addr, time):
     # check if it is in the forwarding table
     destIP = socket.ntohl(int.from_bytes(pack[7:11], 'big'))
     destPort = socket.ntohl(int.from_bytes(pack[11:13], 'big'))
     destKey = f"{destIP}:{destPort}"
 
-    if table.get(destKey) is None:
-        # drop and log
+    tableEnt = table.get(destKey)
+
+    if tableEnt is None:
+        # drop (simply don't add to queue) and log
+        logPacket(pack, addr, None, time, "destination is not in forwarding table")
         return 0
 
-    # add packet to queue
+    # check priority of packet
     priority = int.from_bytes(pack[0], byteorder='big') - 1
 
     if priority > 2 or priority < 0:
-        print("Priority can only be 1, 2, or 3")
+        logPacket(pack, addr, None, time, "priority was outside of 1, 2, or 3")
         return -1
 
     # check if you can add it
@@ -103,7 +131,8 @@ def queuePacket(pack, time):
         queue[priority].append((pack, tts))
         return 1
     else:
-        # drop packet and log it
+        # drop packet (don't add it to queue) and log it
+        logPacket(pack, addr, f"{tableEnt[0]}:{tableEnt[1]}", time, "the queue is full")
         return 0
     
 # look at queue and find a packet to send if one is available
@@ -124,12 +153,12 @@ def getPackets():
         try:
             # try to recieve packet and handle it
             data, addr = recSoc.recvfrom(2048)
-            queuePacket(data, datetime.now())
+            queuePacket(data, addr, datetime.now())
         except socket.timeout:
             pass # skip down to sendPacket()
         except:
-            print("Something went wrong!")
-            print(traceback.format_exc())
+            logging.error("Something went wrong when listening for packet.")
+            logging.error(traceback.format_exc())
 
         # send packet from queue
         sendPacket()
