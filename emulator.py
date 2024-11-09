@@ -39,12 +39,8 @@ except:
 # socket to send from (not the same one)
 sendSoc = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-priority1 = list()
-p1Len = 0
-priority2 = list()
-p2Len = 0
-priority3 = list()
-p3Len = 0
+# these lists will have (packet, timeToSend)
+queue = [list(), list(), list()]
 
 # variable for determining if emulator should keep listening for packets
 isListening = True
@@ -76,23 +72,67 @@ def readTracker():
             # get new line
             line = ftable.readline()
 
-def handlePacket(pack, addr, time):
-    pass
+# queue the packet and if possible
+# steps 2 & 3
+# return 1 if packet is added to queue
+# return 0 if the packet had to be dropped
+# return -1 if there is an error
+def queuePacket(pack, time):
+    # check if it is in the forwarding table
+    destIP = socket.ntohl(int.from_bytes(pack[7:11], 'big'))
+    destPort = socket.ntohl(int.from_bytes(pack[11:13], 'big'))
+    destKey = f"{destIP}:{destPort}"
+
+    if table.get(destKey) is None:
+        # drop and log
+        return 0
+
     # add packet to queue
+    priority = int.from_bytes(pack[0], byteorder='big') - 1
+
+    if priority > 2 or priority < 0:
+        print("Priority can only be 1, 2, or 3")
+        return -1
+
+    # check if you can add it
+    if len(queue[priority]) < args.queueSize:
+        # calculate time to send
+        tts = time + timedelta(milliseconds=table[destKey][2])
+
+        # add to queue and return
+        queue[priority].append((pack, tts))
+        return 1
+    else:
+        # drop packet and log it
+        return 0
     
+# look at queue and find a packet to send if one is available
+# steps 4 - 7
+# return 1 if a packet is sent
+# return 0 if no packet is in queue
+# return -1 if there is an error
+def sendPacket():
+    for q in queue:
+        for p in q:
+            pass
+    
+
+# wait for packets
+# step 1 and 
 def getPackets():
     while isListening:
         try:
             # try to recieve packet and handle it
             data, addr = recSoc.recvfrom(2048)
-            handlePacket(data, addr, datetime.now())
+            queuePacket(data, datetime.now())
         except socket.timeout:
-            pass # Do nothing
+            pass # skip down to sendPacket()
         except:
             print("Something went wrong!")
             print(traceback.format_exc())
 
         # send packet from queue
+        sendPacket()
 
         
 
