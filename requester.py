@@ -40,9 +40,13 @@ except:
     print(traceback.format_exc())
     sys.exit()
 
-# track size of file written and end size of file
+# track size of file written and end size of file and what to write
 finalSizeBytes = 0
 currSizeBytes = 0
+# packetsToWrite = [[(seqNo, payload), ...], ...] 
+# each list is from one sender
+# each list is ordered by seqNo
+packetsFromSenders = list()
 
 def printPacket(ptype, time, srcAddr, srcPort, seq, length, percent, payload):
     print(f"{ptype} Packet")
@@ -115,8 +119,7 @@ def sendAck(destIP, port, seq):
 
 # handle big packet
 # returns small packet
-def handleBigPacket(data, addr, time):
-    print(time)
+def handleBigPacket(data):
 
     priority = data[0]
     srcIP = socket.ntohl(int.from_bytes(data[1:5], 'big'))
@@ -131,12 +134,31 @@ def handleBigPacket(data, addr, time):
 
     return data[17:]
 
+# add the packet to the specific sender packet list
+# return 1 if packet is added
+# return 0 if packet already exists
+def recordPacket(payload, seqNo, senderPackList):
+    # iterate over list backwards and place packet in right spot
+    for i in range(len(senderPackList)-1, -1, -1):
+        cseq = senderPackList[i][0]
+        if cseq > seqNo:
+            continue
+        elif cseq == seqNo:
+            # packet already recieved
+            return 0
+        else:
+            # add packet and return
+            senderPackList.insert(i+1, (seqNo, payload))
+            return 1
+
+
 # handles a packet from sender
 # returns false if it gets something other than data packet (End packet or wrong dest)
 # returns true if it gets a data packet
-def handlePacket(pack, addr, time):
+def handlePacket(pack, addr, time, senderPackList):
     # handle big packet
-    data = handleBigPacket(pack)
+    ret = handleBigPacket(pack)
+    data = ret[0]
 
     if data == 0:
         return False
@@ -157,7 +179,7 @@ def handlePacket(pack, addr, time):
     # Data packet
 
     payload = data[9:9 + pLen]
-    toWrite.write(payload.decode('utf-8'))
+    recordPacket(payload, seqNo, senderPackList)
     # add bytes written and print packet info
     global currSizeBytes
     currSizeBytes += pLen
@@ -183,7 +205,7 @@ def printSummary(addr, numP, numB, pps, ms):
 # handles packets coming from a specific host
 # takes IP that it should be coming from and gets it's port
 # also takes number of bytes it expects to recieve
-def waitListen(ipToListenFor, numBytes):
+def waitListen(ipToListenFor, numBytes, senderPackList):
     isListening = True
     currAddr = ('', 0)
     totalDataPackets = 0
@@ -201,7 +223,7 @@ def waitListen(ipToListenFor, numBytes):
         elif (currAddr == ('', 0) and addr[0] == ipToListenFor):
             currAddr = addr
         
-        isListening = handlePacket(data, addr, now)
+        isListening = handlePacket(data, addr, now, senderPackList)
 
         # check if data packet was recieved
         if isListening:
@@ -210,6 +232,13 @@ def waitListen(ipToListenFor, numBytes):
     end = datetime.now()
     totalTime = (end - start).total_seconds()
     printSummary(currAddr, totalDataPackets, numBytes, totalDataPackets / totalTime, totalTime * 1000)
+
+# write payload to file
+# assume no space is needed for missing sequence numbers
+def writePayloadToFile():
+    for s in packetsFromSenders:
+        for p in s:
+            toWrite.write(p[1].decode('utf-8'))
 
 # gets file from tracker and sends requests to each host in list
 def getFile(fileName):
@@ -223,7 +252,11 @@ def getFile(fileName):
         # send request to sender
         sendReq(s[0], s[1])
         # wait for and handle to packets
-        waitListen(s[0], s[2])
+        packetsFromSenders.append(list())
+        senderPackList = packetsFromSenders[-1]
+        waitListen(s[0], s[2], senderPackList)
+
+    writePayloadToFile()
 
 # function to clean and close all parts of the project
 def cleanup():
