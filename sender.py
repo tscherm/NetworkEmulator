@@ -6,6 +6,7 @@ import ctypes
 import sys
 import traceback
 import ipaddress 
+import threading
 
 # set up arg
 parser = argparse.ArgumentParser(description="Send part of a file in packets to a reciever")
@@ -75,17 +76,26 @@ def sendPacketTimed(packet, addr, lastTimeSent):
 
     return toReturn
 
+def sendWindow(packets, addr, time):
+    # -1 num tries means sucessful send
+    numTries = [0] * len(packets)
+    nextSendTime = [0] * len(packets)
+
+
+
 # function to get file name and read file and open file
-def openFile(data):
+def openFile(data, nameLen):
     # make global variables
     global toSendName
     global toSend
     global toSendSize
+    global windowSize
 
     # get file name
-    nameLen = socket.ntohl(int.from_bytes(data[5:9], 'big'))
-    
     toSendName = data[9:9 + nameLen].decode('utf-8')
+
+    # get window size
+    windowSize = socket.ntohl(int.from_bytes(data[5:9], 'big'))
 
     try:
         toSend = open(toSendName, "r")
@@ -96,15 +106,41 @@ def openFile(data):
     
     toSendSize = os.stat(toSendName).st_size
 
+# handle big packet
+# returns small packet
+def handleBigPacket(data):
+
+    priority = data[0]
+    srcIP = socket.ntohl(int.from_bytes(data[1:5], 'big'))
+    srcPort = socket.ntohl(int.from_bytes(data[5:7], 'big'))
+    destIP = socket.ntohl(int.from_bytes(data[7:11], 'big'))
+    destPort = socket.ntohl(int.from_bytes(data[11:13], 'big'))
+    bigLen = socket.ntohl(int.from_bytes(data[13:17], 'big'))
+
+    if destIP != ipAddr or destPort != args.port:
+        #wrong place
+        return 0
+    
+    # get name size
+    nameLen = bigLen - 26
+
+    return (data[17:], nameLen)
+
 # handle request packet
-def handleReq(data, addr):
+def handleReq(pack, addr):
+
+    ret = handleBigPacket(pack)
+
+    data = ret[0]
+    nameLen = ret[1]
+
     # check that it is a request packet
     # 'R' = 82
     if (data[0] != 82):
         return -1
 
     # get file info
-    openFile(data)
+    openFile(data, nameLen)
 
     # get the number of packets to send
     numPackets = toSendSize // ctypes.c_uint32(args.length).value if toSendSize % ctypes.c_uint32(args.length).value == 0 else toSendSize // ctypes.c_uint32(args.length).value + 1
