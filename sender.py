@@ -45,6 +45,7 @@ reqAddr = (ipAddr, args.sPort)
 try:
     recSoc = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     recSoc.bind(reqAddr)
+    recSoc.setblocking(0)
 except:
     print("An error occured binding the socket")
     print(traceback.format_exc())
@@ -52,6 +53,9 @@ except:
 
 # socket to send from (not the same one)
 sendSoc = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+# helper for sendPacketTimed
+lastTimeSent = datetime.now() - timedelta(days=1)
 
 def printPacket(ptype, time, destAddr, seqNo, length, payload):
     print(f"{ptype} Packet")
@@ -66,21 +70,59 @@ def printPacket(ptype, time, destAddr, seqNo, length, payload):
         print(f"payload:\t\t\n")
 
 # send packet with respect to time
-def sendPacketTimed(packet, addr, lastTimeSent):
+def sendPacketTimed(packet, addr):
+    global lastTimeSent
     # wait for time to be ready to send 
     while ((datetime.now() - lastTimeSent) < mspp):
         continue
 
-    toReturn = datetime.now()
     sendSoc.sendto(packet, (addr, args.rPort))
+    lastTimeSent = datetime.now()
 
-    return toReturn
-
-def sendWindow(packets, addr, time):
+def sendWindow(packets, addr):
     # -1 num tries means sucessful send
     numTries = [0] * len(packets)
-    nextSendTime = [0] * len(packets)
 
+    # find first packet to send
+    toSendIndex = 0
+
+    # loop over packets to send
+    # pop packet off list when it is sent
+    # don't need to keep order because seqNo is in packet
+    while len(packets) > 0:
+        # create thread to send the next packet and start it
+        sending = threading.Thread(target=sendPacketTimed, args=(packets[toSendIndex], addr))
+        sending.start()
+
+        # check if this is its fifth try
+        if numTries[toSendIndex] >= 4:
+            packets.pop(toSendIndex)
+            numTries.pop(toSendIndex)
+
+        # find next packet to send
+        minTries = sys.maxsize
+        for i in range(len(packets)):
+            if numTries[i] < minTries:
+                toSendIndex = i
+
+        # wait on send thread to return
+        hasChecked = False
+        while sending.is_alive() or not hasChecked:
+            # see if there is an ACK
+            data, addr2 = recSoc.recvfrom(4096)
+
+            if addr != addr2:
+                # wrong ACK
+                continue
+
+            seqNo = data[18:22]
+
+            # see what packet it is and pop it and its num tries
+            for i in range(len(packets)):
+                # find which one to pop
+                if packets[i][18:22] == seqNo:
+                    packets.pop(toSendIndex)
+                    numTries.pop(toSendIndex)
 
 
 # function to get file name and read file and open file
@@ -146,9 +188,9 @@ def handleReq(pack, addr):
     numPackets = toSendSize // ctypes.c_uint32(args.length).value if toSendSize % ctypes.c_uint32(args.length).value == 0 else toSendSize // ctypes.c_uint32(args.length).value + 1
 
     # iterate over chunks of data and send it
-    lastTime = datetime.now() - timedelta(days=1)
     seqNum = 1
     sizeLeft = toSendSize
+    packets = list()
     for i in range(numPackets):
         # old sender stuff
         # make header
@@ -168,27 +210,33 @@ def handleReq(pack, addr):
         # for testing
         print(packet)
 
-        lastTime = sendPacketTimed(packet, addr, lastTime)
+        packets.append(packet)
 
         # print packet info
-        printPacket("DATA", lastTime, addr, seqNum, pSize, payload)
+        # supress this
+        # printPacket("DATA", lastTime, addr, seqNum, pSize, payload)
         seqNum += 1
         sizeLeft -= pSize
+
+    global windowSize
+    # do -1 so there aren't extra windows sent if len(packets) % 0 = 0
+    for i in range((len(packets) - 1) // windowSize):
+        sendWindow(packets[i * windowSize: (i + 1) * windowSize], addr)
 
     # send END packet
     pt = b'E'
     l = 0
     packet = pt + socket.htonl(seqNum).to_bytes(4, 'big') + socket.htonl(l).to_bytes(4, 'big')
-    sendPacketTimed(packet, addr, lastTime)
+    sendPacketTimed(packet, addr)
 
     # print end packet
-    printPacket("END", lastTime, addr, seqNum, l, 0)
+    printPacket("END", datetime.now(), addr, seqNum, l, 0)
     
 
 # fucntion to listen for packets and send packets elsewhere
 def waitListen():
     # only need to listen and get one request
-    data, addr = recSoc.recvfrom(2048)
+    data, addr = recSoc.recvfrom(4096)
     handleReq(data, addr[0])
 
 

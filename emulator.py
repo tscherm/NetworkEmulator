@@ -41,7 +41,7 @@ reqAddr = (ipAddr, args.port)
 try:
     recSoc = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     recSoc.bind(reqAddr)
-    recSoc.settimeout(0)
+    recSoc.setblocking(0)
 except:
     logging.critical("An error occured binding the socket")
     logging.critical(traceback.format_exc())
@@ -175,7 +175,7 @@ def getPackets():
     while isListening:
         try:
             # try to recieve packet and handle it
-            data, addr = recSoc.recvfrom(2048)
+            data, addr = recSoc.recvfrom(4096)
             queuePacket(data, addr, datetime.now())
         except socket.timeout:
             pass # skip down to sendPacket()

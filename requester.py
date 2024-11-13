@@ -212,7 +212,7 @@ def waitListen(ipToListenFor, numBytes, senderPackList):
     start = datetime.now()
 
     while isListening:
-        data, addr = soc.recvfrom(2048)
+        data, addr = soc.recvfrom(4096)
         now = datetime.now()
 
         # check if it is from the same address for summary
