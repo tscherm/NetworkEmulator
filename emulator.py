@@ -185,7 +185,7 @@ def getPackets():
             print(addr)
             queuePacket(data, addr, datetime.now())
         except BlockingIOError:
-            continue # skip down to sendPacket()
+            pass # skip down to sendPacket()
         except KeyboardInterrupt:
             sys.exit()
         except:
