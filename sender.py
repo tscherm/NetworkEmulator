@@ -188,7 +188,7 @@ def handleBigPacket(data):
     destPort = socket.ntohs(int.from_bytes(data[11:13], 'big'))
     bigLen = socket.ntohl(int.from_bytes(data[13:17], 'big'))
 
-    if destIP != ipAddr or destPort != args.port:
+    if ipaddress.ip_address(destIP) != ipaddress.ip_address(ipAddr) or destPort != int(args.sPort):
         #wrong place
         return 0
     
