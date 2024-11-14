@@ -67,8 +67,9 @@ def readTracker():
     table = dict()
 
     # first pass to get size for arrays of tuples of data
-    with open(args.fileName, 'r') as ftable:
+    with open(f"/{args.fileName}", 'r') as ftable:
         lines = ftable.readlines()
+        print(lines)
         for line in lines:
             vals = line.split()
 
@@ -103,7 +104,7 @@ def logPacket(pack, recAddr, destAddr, recTime, reason):
 def queuePacket(pack, addr, time):
     # check if it is in the forwarding table
     destIP = socket.ntohl(int.from_bytes(pack[7:11], 'big'))
-    destPort = socket.ntohl(int.from_bytes(pack[11:13], 'big'))
+    destPort = socket.ntohs(int.from_bytes(pack[11:13], 'big'))
     destKey = (ipaddress.ip_address(destIP), destPort)
 
     global table
