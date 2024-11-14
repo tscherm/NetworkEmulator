@@ -79,8 +79,10 @@ def sendPacketTimed(packet):
     # wait for time to be ready to send 
     while ((datetime.now() - lastTimeSent) < mspp):
         continue
-    
-    sendSoc.sendto(packet, (eAddr, args.rPort))
+
+    print(packet)
+    print(type(packet))
+    sendSoc.sendto(packet, eAddr)
     lastTimeSent = datetime.now()
 
 def sendWindow(packets):
@@ -102,7 +104,8 @@ def sendWindow(packets):
 
         # check if there is a new packet to send
         if packToSend:
-            sending = threading.Thread(target=sendPacketTimed, args=(packets[toSendIndex]))
+            packToSend = packets[toSendIndex]
+            sending = threading.Thread(target=sendPacketTimed, args=([packToSend]))
             sending.start()
 
             # packet has been sent and is in timeout to be selected to be sent again
