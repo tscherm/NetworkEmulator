@@ -290,6 +290,7 @@ def waitListen():
             sys.exit()
         except:
             print("Something went wrong listening for packets.")
+            print(traceback.format_exc())
 
 
 def cleanup():
