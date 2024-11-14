@@ -117,7 +117,7 @@ def queuePacket(pack, addr, time):
         return 0
 
     # check priority of packet
-    priority = int.from_bytes(pack[0], byteorder='big') - 1
+    priority = pack[0] - 1
 
     if priority > 2 or priority < 0:
         logPacket(pack, addr, None, time, "priority was outside of 1, 2, or 3")
