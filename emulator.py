@@ -154,6 +154,8 @@ def sendPacket():
             try:
                 if (toSend[0][17] == 'R' or toSend[0][17] == 'E') and random.random() > toSend[3]:
                     recSoc.sendto(toSend[0], toSend[1])
+                    print("PACKET SENT")
+                    print(toSend[1])
 
                 # take packet off queue
                 q.pop(0)
@@ -178,6 +180,9 @@ def getPackets():
         try:
             # try to recieve packet and handle it
             data, addr = recSoc.recvfrom(4096)
+            print("PACKET RECIEVED")
+            print(data)
+            print(addr)
             queuePacket(data, addr, datetime.now())
         except BlockingIOError:
             continue # skip down to sendPacket()
