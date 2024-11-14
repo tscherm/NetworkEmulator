@@ -138,6 +138,8 @@ def sendWindow(packets, addr):
                 data, addr2 = recSoc.recvfrom(4096)
             except BlockingIOError:
                 continue # try to listen again
+            except KeyboardInterrupt:
+                sys.exit()
             except:
                 print("Something when wrong when listening for ACK")
 
@@ -283,6 +285,8 @@ def waitListen():
             isListening = False
         except BlockingIOError:
             pass # do nothing
+        except KeyboardInterrupt:
+            sys.exit()
         except:
             print("Something went wrong listening for packets.")
 

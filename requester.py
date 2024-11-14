@@ -248,6 +248,8 @@ def waitListen(ipToListenFor, senderPackList):
             data, addr = soc.recvfrom(4096)
         except BlockingIOError:
             continue
+        except KeyboardInterrupt:
+            sys.exit()
         except:
             print("Something went wrong listening for packets")
             continue

@@ -186,6 +186,8 @@ def getPackets():
             queuePacket(data, addr, datetime.now())
         except BlockingIOError:
             continue # skip down to sendPacket()
+        except KeyboardInterrupt:
+            sys.exit()
         except:
             logging.error("Something went wrong when listening for packet.")
             logging.error(traceback.format_exc())
