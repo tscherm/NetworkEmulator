@@ -108,6 +108,7 @@ def queuePacket(pack, addr, time):
     destPort = socket.ntohl(int.from_bytes(pack[11:13], 'big'))
     destKey = (destIP, destPort)
 
+    global table
     tableEnt = table.get(destKey)
 
     if tableEnt is None:
