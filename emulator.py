@@ -161,7 +161,7 @@ def sendPacket():
                 print(random.random())
                 # 'R' = 82 'E' = 69
                 if (toSend[0][17] == 82 or toSend[0][17] == 69) or random.random() >= toSend[3]:
-                    recSoc.sendto(str(toSend[0]), toSend[1])
+                    recSoc.sendto(toSend[0], (str(toSend[1][0]), toSend[1][1]))
                     print("PACKET SENT")
                     print(toSend[1])
 
