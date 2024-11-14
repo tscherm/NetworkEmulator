@@ -109,7 +109,7 @@ def queuePacket(pack, addr, time):
     global table
     print(destKey)
     print(table.keys())
-    tableEnt = table.get(destKey)
+    tableEnt = table.get(destKey)[0]
 
     if tableEnt is None:
         # drop (simply don't add to queue) and log
