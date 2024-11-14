@@ -129,8 +129,17 @@ def sendWindow(packets, addr):
         # this also avoids any race conditions
         hasChecked = False
         while sending.is_alive() or not hasChecked:
+            # initialize these so they can be used lower down
+            data = 0
+            addr2 = 0
+
             # see if there is an ACK
-            data, addr2 = recSoc.recvfrom(4096)
+            try:
+                data, addr2 = recSoc.recvfrom(4096)
+            except BlockingIOError:
+                continue # try to listen again
+            except:
+                print("Something when wrong when listening for ACK")
 
             seqNo = data[18:22]
 
@@ -264,8 +273,13 @@ def handleReq(pack, addr):
 # fucntion to listen for packets and send packets elsewhere
 def waitListen():
     # only need to listen and get one request
-    data, addr = recSoc.recvfrom(4096)
-    handleReq(data, addr[0])
+    try:
+        data, addr = recSoc.recvfrom(4096)
+        handleReq(data, addr[0])
+    except BlockingIOError:
+        pass # do nothing
+    except:
+        print("Something went wrong listening for packets.")
 
 
 def cleanup():

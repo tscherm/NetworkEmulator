@@ -234,7 +234,15 @@ def waitListen(ipToListenFor, senderPackList):
     start = datetime.now()
 
     while isListening:
-        data, addr = soc.recvfrom(4096)
+
+        try:
+            data, addr = soc.recvfrom(4096)
+        except BlockingIOError:
+            continue
+        except:
+            print("Something went wrong listening for packets")
+
+        
         now = datetime.now()
 
         # check if it is from the same address for summary

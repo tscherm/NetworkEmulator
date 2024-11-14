@@ -178,8 +178,8 @@ def getPackets():
             # try to recieve packet and handle it
             data, addr = recSoc.recvfrom(4096)
             queuePacket(data, addr, datetime.now())
-        except socket.timeout:
-            pass # skip down to sendPacket()
+        except BlockingIOError:
+            continue # skip down to sendPacket()
         except:
             logging.error("Something went wrong when listening for packet.")
             logging.error(traceback.format_exc())
