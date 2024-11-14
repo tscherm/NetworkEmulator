@@ -78,8 +78,8 @@ def sendReq(destIP, port):
 
     # new sender stuff
     l3Prior = (1).to_bytes(1, 'big')
-    srcAdr = socket.htonl(ipaddress.ip_address(ipAddr)).to_bytes(4, 'big') + socket.htonl(args.port).to_bytes(2, 'big')
-    destAdr = socket.htonl(ipaddress.ip_address(destIP)).to_bytes(4, 'big') + socket.htonl(port).to_bytes(2, 'big')
+    srcAdr = socket.htonl(int(ipaddress.ip_address(ipAddr))).to_bytes(4, 'big') + socket.htonl(args.port).to_bytes(2, 'big')
+    destAdr = socket.htonl(int(ipaddress.ip_address(destIP))).to_bytes(4, 'big') + socket.htonl(port).to_bytes(2, 'big')
     l3Len = socket.htonl((l + 9)).to_bytes(4, 'big')
     packet = l3Prior + srcAdr + destAdr + l3Len + l2Packet
 
@@ -131,8 +131,8 @@ def sendAck(destIP, port, seq):
 
     # new sender stuff
     l3Prior = (1).to_bytes(1, 'big')
-    srcAdr = socket.htonl(ipaddress.ip_address(ipAddr)).to_bytes(4, 'big') + socket.htonl(args.port).to_bytes(2, 'big')
-    destAdr = socket.htonl(ipaddress.ip_address(destIP)).to_bytes(4, 'big') + socket.htonl(port).to_bytes(2, 'big')
+    srcAdr = socket.htonl(int(ipaddress.ip_address(ipAddr))).to_bytes(4, 'big') + socket.htonl(args.port).to_bytes(2, 'big')
+    destAdr = socket.htonl(int(ipaddress.ip_address(destIP))).to_bytes(4, 'big') + socket.htonl(port).to_bytes(2, 'big')
     l3Len = socket.htonl((l + 9)).to_bytes(4, 'big')
     packet = l3Prior + srcAdr + destAdr + l3Len + l2Packet
 

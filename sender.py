@@ -230,8 +230,8 @@ def handleReq(pack, addr):
 
         # new sender stuff
         l3Prior = (int(args.priority)).to_bytes(1, 'big')
-        srcAdr = socket.htonl(ipaddress.ip_address(ipAddr)).to_bytes(4, 'big') + socket.htonl(args.sPort).to_bytes(2, 'big')
-        destAdr = socket.htonl(ipaddress.ip_address(addr)).to_bytes(4, 'big') + socket.htonl(args.rPort).to_bytes(2, 'big')
+        srcAdr = socket.htonl(int(ipaddress.ip_address(ipAddr))).to_bytes(4, 'big') + socket.htonl(args.sPort).to_bytes(2, 'big')
+        destAdr = socket.htonl(int(ipaddress.ip_address(addr))).to_bytes(4, 'big') + socket.htonl(args.rPort).to_bytes(2, 'big')
         l3Len = socket.htonl((pSize + 9)).to_bytes(4, 'big')
         packet = l3Prior + srcAdr + destAdr + l3Len + l2Packet
         # for testing
@@ -253,8 +253,8 @@ def handleReq(pack, addr):
     # send END packet
     # new sender stuff
     l3Prior = (int(args.priority)).to_bytes(1, 'big')
-    srcAdr = socket.htonl(ipaddress.ip_address(ipAddr)).to_bytes(4, 'big') + socket.htonl(args.sPort).to_bytes(2, 'big')
-    destAdr = socket.htonl(ipaddress.ip_address(addr)).to_bytes(4, 'big') + socket.htonl(args.rPort).to_bytes(2, 'big')
+    srcAdr = socket.htonl(int(ipaddress.ip_address(ipAddr))).to_bytes(4, 'big') + socket.htonl(args.sPort).to_bytes(2, 'big')
+    destAdr = socket.htonl(int(ipaddress.ip_address(addr))).to_bytes(4, 'big') + socket.htonl(args.rPort).to_bytes(2, 'big')
     l3Len = socket.htonl((pSize + 9)).to_bytes(4, 'big')
 
     pt = b'E'
