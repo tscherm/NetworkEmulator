@@ -152,10 +152,15 @@ def sendPacket():
         toSend = q[0]
 
         # check if packet can be sent
-        if toSend[2] > datetime.now():
+        if toSend[2] < datetime.now():
             # try to send packet
             try:
-                if (toSend[0][17] == 'R' or toSend[0][17] == 'E') and random.random() > toSend[3]:
+                print("trying to send")
+                print(toSend[0][17])
+                print(toSend[3])
+                print(random.random())
+                # 'R' = 82 'E' = 69
+                if (toSend[0][17] == 82 or toSend[0][17] == 69) or random.random() >= toSend[3]:
                     recSoc.sendto(toSend[0], toSend[1])
                     print("PACKET SENT")
                     print(toSend[1])
