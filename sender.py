@@ -18,7 +18,7 @@ parser.add_argument("-q", "--seq_no", type=int, required=True, dest="seqNo")
 parser.add_argument("-l", "--length", type=int, required=True, dest="length")
 parser.add_argument("-f", "--f_hostname", type=str, required=True, dest="emulatorName")
 parser.add_argument("-e", "--f_port", type=int, required=True, dest="emulatorPort")
-parser.add_argument("-i", "--priority", type=int, required=True, dest="priotity")
+parser.add_argument("-i", "--priority", type=int, required=True, dest="priority")
 parser.add_argument("-t", "--timeout", type=int, required=True, dest="timeout")
 
 args = parser.parse_args()
@@ -193,7 +193,7 @@ def handleBigPacket(data):
         return 0
     
     # get name size
-    nameLen = bigLen - 26
+    nameLen = bigLen - 9
 
     return (data[17:], nameLen)
 
@@ -231,7 +231,7 @@ def handleReq(pack, addr):
         l2Packet = header + payload
 
         # new sender stuff
-        l3Prior = (int(args.priority)).to_bytes(1, 'big')
+        l3Prior = int(args.priority)
         srcAdr = socket.htonl(int(ipaddress.ip_address(ipAddr))).to_bytes(4, 'big') + socket.htons(args.sPort).to_bytes(2, 'big')
         destAdr = socket.htonl(int(ipaddress.ip_address(addr))).to_bytes(4, 'big') + socket.htons(args.rPort).to_bytes(2, 'big')
         l3Len = socket.htonl((pSize + 9)).to_bytes(4, 'big')
@@ -257,7 +257,7 @@ def handleReq(pack, addr):
     l3Prior = (int(args.priority)).to_bytes(1, 'big')
     srcAdr = socket.htonl(int(ipaddress.ip_address(ipAddr))).to_bytes(4, 'big') + socket.htons(args.sPort).to_bytes(2, 'big')
     destAdr = socket.htonl(int(ipaddress.ip_address(addr))).to_bytes(4, 'big') + socket.htons(args.rPort).to_bytes(2, 'big')
-    l3Len = socket.htonl((pSize + 9)).to_bytes(4, 'big')
+    l3Len = socket.htonl(0).to_bytes(4, 'big')
 
     pt = b'E'
     l = 0
