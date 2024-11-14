@@ -77,11 +77,11 @@ def readTracker():
                 continue
 
             # check if the value exists in the dictionary
-            destKey = (ipaddress.ipaddress(vals[2]), int(vals[3]))
+            destKey = (ipaddress.ip_address(vals[2]), int(vals[3]))
             if table.get(destKey) is None:
                 table[destKey] = list()
             # add string values to array
-            table[destKey].append(((ipaddress.ipaddress(vals[4]), int(vals[5])), int(vals[6]), int(vals[7]) / 100))
+            table[destKey].append(((ipaddress.ip_address(vals[4]), int(vals[5])), int(vals[6]), int(vals[7]) / 100))
 
 # write logs
 def logPacket(pack, recAddr, destAddr, recTime, reason):
@@ -104,7 +104,7 @@ def queuePacket(pack, addr, time):
     # check if it is in the forwarding table
     destIP = socket.ntohl(int.from_bytes(pack[7:11], 'big'))
     destPort = socket.ntohl(int.from_bytes(pack[11:13], 'big'))
-    destKey = (ipaddress.ipaddress(destIP), destPort)
+    destKey = (ipaddress.ip_address(destIP), destPort)
 
     global table
     tableEnt = table.get(destKey)
