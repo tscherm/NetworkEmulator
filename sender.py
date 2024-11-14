@@ -74,7 +74,7 @@ def printPacket(ptype, time, destAddr, seqNo, length, payload):
         print(f"payload:\t\t\n")
 
 # send packet with respect to time
-def sendPacketTimed(packet, addr):
+def sendPacketTimed(packet):
     global lastTimeSent
     # wait for time to be ready to send 
     while ((datetime.now() - lastTimeSent) < mspp):
@@ -83,7 +83,7 @@ def sendPacketTimed(packet, addr):
     sendSoc.sendto(packet, (eAddr, args.rPort))
     lastTimeSent = datetime.now()
 
-def sendWindow(packets, addr):
+def sendWindow(packets):
     # -1 num tries means sucessful send
     numTries = [0] * len(packets)
     timeToSend = [datetime.now()] * len(packets)
@@ -102,7 +102,7 @@ def sendWindow(packets, addr):
 
         # check if there is a new packet to send
         if packToSend:
-            sending = threading.Thread(target=sendPacketTimed, args=(packets[toSendIndex], addr))
+            sending = threading.Thread(target=sendPacketTimed, args=(packets[toSendIndex]))
             sending.start()
 
             # packet has been sent and is in timeout to be selected to be sent again
@@ -267,7 +267,7 @@ def handleReq(pack, addr):
 
     packets = list()
     packets.append(packet)
-    sendWindow(packet)
+    sendWindow(packets)
     # print end packet
     printPacket("END", datetime.now(), addr, seqNum, l, 0)
     
