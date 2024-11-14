@@ -54,6 +54,10 @@ except:
 # socket to send from (not the same one)
 sendSoc = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
+# get emulator address
+eIpAddr = socket.gethostbyname(args.emulatorName)
+eAddr = (eIpAddr, args.emulatorPort)
+
 # helper for sendPacketTimed
 lastTimeSent = datetime.now() - timedelta(days=1)
 
@@ -75,45 +79,58 @@ def sendPacketTimed(packet, addr):
     # wait for time to be ready to send 
     while ((datetime.now() - lastTimeSent) < mspp):
         continue
-
-    sendSoc.sendto(packet, (addr, args.rPort))
+    
+    sendSoc.sendto(packet, (eAddr, args.rPort))
     lastTimeSent = datetime.now()
 
 def sendWindow(packets, addr):
     # -1 num tries means sucessful send
     numTries = [0] * len(packets)
+    timeToSend = [datetime.now()] * len(packets)
 
     # find first packet to send
     toSendIndex = 0
+
+    # helper to see if something needs to be sent
+    packToSend = True
 
     # loop over packets to send
     # pop packet off list when it is sent
     # don't need to keep order because seqNo is in packet
     while len(packets) > 0:
         # create thread to send the next packet and start it
-        sending = threading.Thread(target=sendPacketTimed, args=(packets[toSendIndex], addr))
-        sending.start()
 
-        # check if this is its fifth try
-        if numTries[toSendIndex] >= 4:
-            packets.pop(toSendIndex)
-            numTries.pop(toSendIndex)
+        # check if there is a new packet to send
+        if packToSend:
+            sending = threading.Thread(target=sendPacketTimed, args=(packets[toSendIndex], addr))
+            sending.start()
+
+            # packet has been sent and is in timeout to be selected to be sent again
+            packToSend = False
+
+            # check if this is its fifth try
+            if numTries[toSendIndex] >= 4:
+                packets.pop(toSendIndex)
+                numTries.pop(toSendIndex)
+                timeToSend.pop(toSendIndex)
+            else:
+                numTries[toSendIndex] += 1
+                timeToSend[toSendIndex] = datetime.now() + timedelta(milliseconds=int(args.timeout))
+
 
         # find next packet to send
-        minTries = sys.maxsize
         for i in range(len(packets)):
-            if numTries[i] < minTries:
+            if timeToSend[i] >= datetime.now():
                 toSendIndex = i
+                packToSend = True
+                break
 
         # wait on send thread to return
+        # this also avoids any race conditions
         hasChecked = False
         while sending.is_alive() or not hasChecked:
             # see if there is an ACK
             data, addr2 = recSoc.recvfrom(4096)
-
-            if addr != addr2:
-                # wrong ACK
-                continue
 
             seqNo = data[18:22]
 
@@ -123,6 +140,7 @@ def sendWindow(packets, addr):
                 if packets[i][18:22] == seqNo:
                     packets.pop(toSendIndex)
                     numTries.pop(toSendIndex)
+                    timeToSend.pop(toSendIndex)
 
 
 # function to get file name and read file and open file
@@ -224,11 +242,21 @@ def handleReq(pack, addr):
         sendWindow(packets[i * windowSize: (i + 1) * windowSize], addr)
 
     # send END packet
+    # new sender stuff
+    l3Prior = socket.htonl(args.priority).to_bytes(1, 'big')
+    srcAdr = socket.htonl(ipaddress.ip_address(ipAddr)).to_bytes(4, 'big') + socket.htonl(args.sPort).to_bytes(2, 'big')
+    destAdr = socket.htonl(ipaddress.ip_address(addr)).to_bytes(4, 'big') + socket.htonl(args.rPort).to_bytes(2, 'big')
+    l3Len = socket.htonl((pSize + 9)).to_bytes(4, 'big')
+
     pt = b'E'
     l = 0
-    packet = pt + socket.htonl(seqNum).to_bytes(4, 'big') + socket.htonl(l).to_bytes(4, 'big')
-    sendPacketTimed(packet, addr)
+    l2Packet = pt + socket.htonl(seqNum).to_bytes(4, 'big') + socket.htonl(l).to_bytes(4, 'big')
 
+    packet = l3Prior + srcAdr + destAdr + l3Len + l2Packet
+
+    packets = list()
+    packets.append(packet)
+    sendWindow(packet)
     # print end packet
     printPacket("END", datetime.now(), addr, seqNum, l, 0)
     

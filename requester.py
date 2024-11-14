@@ -3,6 +3,7 @@ import socket
 from datetime import datetime
 import sys
 import traceback
+import ipaddress
 
 # set up arg
 parser = argparse.ArgumentParser(description="Request part of a file in packets to a reciever")
@@ -40,6 +41,10 @@ except:
     print(traceback.format_exc())
     sys.exit()
 
+# get emulator address
+eIpAddr = socket.gethostbyname(args.emulatorName)
+eAddr = (eIpAddr, args.emulatorPort)
+
 # track size of file written and end size of file and what to write
 finalSizeBytes = 0
 currSizeBytes = 0
@@ -69,8 +74,16 @@ def sendReq(destIP, port):
 
     header = pt + socket.htonl(seq).to_bytes(4, 'big') + socket.htonl(l).to_bytes(4, 'big')
     payload = args.fileName.encode('utf-8')
-    packet = header + payload
-    soc.sendto(packet, (destIP, port))
+    l2Packet = header + payload
+
+    # new sender stuff
+    l3Prior = socket.htonl(args.priority).to_bytes(1, 'big')
+    srcAdr = socket.htonl(ipaddress.ip_address(ipAddr)).to_bytes(4, 'big') + socket.htonl(args.port).to_bytes(2, 'big')
+    destAdr = socket.htonl(ipaddress.ip_address(destIP)).to_bytes(4, 'big') + socket.htonl(port).to_bytes(2, 'big')
+    l3Len = socket.htonl((l + 9)).to_bytes(4, 'big')
+    packet = l3Prior + srcAdr + destAdr + l3Len + l2Packet
+
+    soc.sendto(packet, eAddr)
 
 # function to readd the tracker
 # Assumed name is tracker.txt
@@ -89,7 +102,7 @@ def readTracker():
             if files.get(vals[0]) is None:
                 files[vals[0]] = list()
             # add string values to array
-            files[vals[0]].append((vals[1], vals[2], vals[3], vals[4]))
+            files[vals[0]].append((vals[1], vals[2], vals[3]))
 
             # get new line
             line = tracker.readline()
@@ -97,13 +110,13 @@ def readTracker():
         # sort values in arrays for each file
         for k in files.keys():
             # array to replace old array
-            tempArr = [(0,0,0)] * len(files[k])
+            tempArr = [(0,0)] * len(files[k])
 
             # iterate over each element and place it in the right spot
             for t in files[k]:
                 spot = int(t[0]) - 1
-                # convert host name to ip, port to int, remove b from bytes to int
-                tempArr[spot] = (socket.gethostbyname(t[1]), int(t[2]), int(t[3][:-1]))
+                # convert host name to ip, port to int
+                tempArr[spot] = (socket.gethostbyname(t[1]), int(t[2]))
             # replace old array with the new one
             files[k] = tempArr
 
@@ -114,8 +127,16 @@ def sendAck(destIP, port, seq):
     l = 0
 
     header = pt + socket.htonl(seq).to_bytes(4, 'big') + socket.htonl(l).to_bytes(4, 'big')
-    packet = header
-    soc.sendto(packet, (destIP, port))
+    l2Packet = header
+
+    # new sender stuff
+    l3Prior = socket.htonl(args.priority).to_bytes(1, 'big')
+    srcAdr = socket.htonl(ipaddress.ip_address(ipAddr)).to_bytes(4, 'big') + socket.htonl(args.port).to_bytes(2, 'big')
+    destAdr = socket.htonl(ipaddress.ip_address(destIP)).to_bytes(4, 'big') + socket.htonl(port).to_bytes(2, 'big')
+    l3Len = socket.htonl((l + 9)).to_bytes(4, 'big')
+    packet = l3Prior + srcAdr + destAdr + l3Len + l2Packet
+
+    soc.sendto(packet, eAddr)
 
 # handle big packet
 # returns small packet
@@ -184,6 +205,7 @@ def handlePacket(pack, addr, time, senderPackList):
     global currSizeBytes
     currSizeBytes += pLen
     global finalSizeBytes
+    finalSizeBytes += pLen
 
     # supress this
     # printPacket("DATA", time, addr[0], addr[1], seqNo, pLen, currSizeBytes / finalSizeBytes, payload)
@@ -205,7 +227,7 @@ def printSummary(addr, numP, numB, pps, ms):
 # handles packets coming from a specific host
 # takes IP that it should be coming from and gets it's port
 # also takes number of bytes it expects to recieve
-def waitListen(ipToListenFor, numBytes, senderPackList):
+def waitListen(ipToListenFor, senderPackList):
     isListening = True
     currAddr = ('', 0)
     totalDataPackets = 0
@@ -231,7 +253,7 @@ def waitListen(ipToListenFor, numBytes, senderPackList):
     # calculate time and print summary
     end = datetime.now()
     totalTime = (end - start).total_seconds()
-    printSummary(currAddr, totalDataPackets, numBytes, totalDataPackets / totalTime, totalTime * 1000)
+    printSummary(currAddr, totalDataPackets, totalDataPackets / totalTime, totalTime * 1000)
 
 # write payload to file
 # assume no space is needed for missing sequence numbers
@@ -242,10 +264,6 @@ def writePayloadToFile():
 
 # gets file from tracker and sends requests to each host in list
 def getFile(fileName):
-    # get size of the file
-    for s in files[fileName]:
-        global finalSizeBytes 
-        finalSizeBytes += s[2]
 
     # iterate over senders to get file from
     for s in files[fileName]:
@@ -254,7 +272,7 @@ def getFile(fileName):
         # wait for and handle to packets
         packetsFromSenders.append(list())
         senderPackList = packetsFromSenders[-1]
-        waitListen(s[0], s[2], senderPackList)
+        waitListen(s[0], senderPackList)
 
     writePayloadToFile()
 

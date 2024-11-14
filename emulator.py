@@ -76,11 +76,11 @@ def readTracker():
                 continue
 
             # check if the value exists in the dictionary
-            destKey = f"{vals[2]}:{vals[3]}"
+            destKey = (socket.gethostbyname(vals[2]), vals[3])
             if table.get(destKey) is None:
                 table[destKey] = list()
             # add string values to array
-            table[destKey].append((vals[4], vals[5], vals[6], vals[7]))
+            table[destKey].append(((socket.gethostbyname(vals[4]), int(vals[5])), int(vals[6]), int(vals[7]) / 100))
 
             # get new line
             line = ftable.readline()
@@ -106,7 +106,7 @@ def queuePacket(pack, addr, time):
     # check if it is in the forwarding table
     destIP = socket.ntohl(int.from_bytes(pack[7:11], 'big'))
     destPort = socket.ntohl(int.from_bytes(pack[11:13], 'big'))
-    destKey = f"{destIP}:{destPort}"
+    destKey = (socket.gethostbyname(destIP), destPort)
 
     tableEnt = table.get(destKey)
 
@@ -123,16 +123,16 @@ def queuePacket(pack, addr, time):
         return -1
 
     # check if you can add it
-    if len(queue[priority]) < args.queueSize:
+    if len(queue[priority]) < args.queueSize or pack[17] == 'R' or pack[17] == 'E':
         # calculate time to send
-        tts = time + timedelta(milliseconds=table[destKey][2])
+        tts = time + timedelta(milliseconds=tableEnt[1])
 
-        # add to queue and return
-        queue[priority].append((pack, tts))
+        # add to queue and return (packet, timeToSend, nextHop, lossProb)
+        queue[priority].append((pack, tableEnt[0], tts, tableEnt[2]))
         return 1
     else:
         # drop packet (don't add it to queue) and log it
-        logPacket(pack, addr, f"{tableEnt[0]}:{tableEnt[1]}", time, "the queue is full")
+        logPacket(pack, addr, f"{tableEnt[0]}", time, "the queue is full")
         return 0
     
 # look at queue and find a packet to send if one is available
@@ -152,7 +152,8 @@ def sendPacket():
         if toSend[2] > datetime.now():
             # try to send packet
             try:
-                recSoc.sendto(toSend[0], toSend[1])
+                if (toSend[0][17] == 'R' or toSend[0][17] == 'E') and random.random() > toSend[3]:
+                    recSoc.sendto(toSend[0], toSend[1])
 
                 # take packet off queue
                 q.pop(0)
@@ -185,9 +186,6 @@ def getPackets():
 
         # send packet from queue
         sendPacket()
-
-        
-
 
 
 def cleanup():
