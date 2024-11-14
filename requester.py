@@ -84,6 +84,9 @@ def sendReq(destIP, port):
     packet = l3Prior + srcAdr + destAdr + l3Len + l2Packet
 
     soc.sendto(packet, eAddr)
+    print("REQUEST SENT")
+    print(packet)
+    print(eAddr)
 
 # function to readd the tracker
 # Assumed name is tracker.txt
@@ -238,12 +241,16 @@ def waitListen(ipToListenFor, senderPackList):
 
     while isListening:
 
+        data = 0
+        addr = 0
+
         try:
             data, addr = soc.recvfrom(4096)
         except BlockingIOError:
             continue
         except:
             print("Something went wrong listening for packets")
+            continue
 
         
         now = datetime.now()
