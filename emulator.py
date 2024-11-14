@@ -73,15 +73,15 @@ def readTracker():
             vals = line.split()
 
             # check if it is the right emulator
-            if vals[0] != hostname or vals[1] != args.port:
+            if vals[0] != hostname or int(vals[1]) != args.port:
                 continue
 
             # check if the value exists in the dictionary
-            destKey = (ipaddress.ip_address(vals[2]), int(vals[3]))
+            destKey = (ipaddress.ip_address(socket.gethostbyname(vals[2])), int(vals[3]))
             if table.get(destKey) is None:
                 table[destKey] = list()
             # add string values to array
-            table[destKey].append(((ipaddress.ip_address(vals[4]), int(vals[5])), int(vals[6]), int(vals[7]) / 100))
+            table[destKey].append(((ipaddress.ip_address(socket.gethostbyname(vals[4])), int(vals[5])), int(vals[6]), int(vals[7]) / 100))
 
 # write logs
 def logPacket(pack, recAddr, destAddr, recTime, reason):
