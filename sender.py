@@ -229,7 +229,7 @@ def handleReq(pack, addr):
         l2Packet = header + payload
 
         # new sender stuff
-        l3Prior = socket.htonl(args.priority).to_bytes(1, 'big')
+        l3Prior = (int(args.priority)).to_bytes(1, 'big')
         srcAdr = socket.htonl(ipaddress.ip_address(ipAddr)).to_bytes(4, 'big') + socket.htonl(args.sPort).to_bytes(2, 'big')
         destAdr = socket.htonl(ipaddress.ip_address(addr)).to_bytes(4, 'big') + socket.htonl(args.rPort).to_bytes(2, 'big')
         l3Len = socket.htonl((pSize + 9)).to_bytes(4, 'big')
@@ -252,7 +252,7 @@ def handleReq(pack, addr):
 
     # send END packet
     # new sender stuff
-    l3Prior = socket.htonl(args.priority).to_bytes(1, 'big')
+    l3Prior = (int(args.priority)).to_bytes(1, 'big')
     srcAdr = socket.htonl(ipaddress.ip_address(ipAddr)).to_bytes(4, 'big') + socket.htonl(args.sPort).to_bytes(2, 'big')
     destAdr = socket.htonl(ipaddress.ip_address(addr)).to_bytes(4, 'big') + socket.htonl(args.rPort).to_bytes(2, 'big')
     l3Len = socket.htonl((pSize + 9)).to_bytes(4, 'big')
