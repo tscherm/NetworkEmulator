@@ -181,9 +181,9 @@ def handleBigPacket(data):
 
     priority = data[0]
     srcIP = socket.ntohl(int.from_bytes(data[1:5], 'big'))
-    srcPort = socket.ntohl(int.from_bytes(data[5:7], 'big'))
+    srcPort = socket.ntohs(int.from_bytes(data[5:7], 'big'))
     destIP = socket.ntohl(int.from_bytes(data[7:11], 'big'))
-    destPort = socket.ntohl(int.from_bytes(data[11:13], 'big'))
+    destPort = socket.ntohs(int.from_bytes(data[11:13], 'big'))
     bigLen = socket.ntohl(int.from_bytes(data[13:17], 'big'))
 
     if destIP != ipAddr or destPort != args.port:
@@ -230,8 +230,8 @@ def handleReq(pack, addr):
 
         # new sender stuff
         l3Prior = (int(args.priority)).to_bytes(1, 'big')
-        srcAdr = socket.htonl(int(ipaddress.ip_address(ipAddr))).to_bytes(4, 'big') + socket.htonl(args.sPort).to_bytes(2, 'big')
-        destAdr = socket.htonl(int(ipaddress.ip_address(addr))).to_bytes(4, 'big') + socket.htonl(args.rPort).to_bytes(2, 'big')
+        srcAdr = socket.htonl(int(ipaddress.ip_address(ipAddr))).to_bytes(4, 'big') + socket.htons(args.sPort).to_bytes(2, 'big')
+        destAdr = socket.htonl(int(ipaddress.ip_address(addr))).to_bytes(4, 'big') + socket.htons(args.rPort).to_bytes(2, 'big')
         l3Len = socket.htonl((pSize + 9)).to_bytes(4, 'big')
         packet = l3Prior + srcAdr + destAdr + l3Len + l2Packet
         # for testing
@@ -253,8 +253,8 @@ def handleReq(pack, addr):
     # send END packet
     # new sender stuff
     l3Prior = (int(args.priority)).to_bytes(1, 'big')
-    srcAdr = socket.htonl(int(ipaddress.ip_address(ipAddr))).to_bytes(4, 'big') + socket.htonl(args.sPort).to_bytes(2, 'big')
-    destAdr = socket.htonl(int(ipaddress.ip_address(addr))).to_bytes(4, 'big') + socket.htonl(args.rPort).to_bytes(2, 'big')
+    srcAdr = socket.htonl(int(ipaddress.ip_address(ipAddr))).to_bytes(4, 'big') + socket.htons(args.sPort).to_bytes(2, 'big')
+    destAdr = socket.htonl(int(ipaddress.ip_address(addr))).to_bytes(4, 'big') + socket.htons(args.rPort).to_bytes(2, 'big')
     l3Len = socket.htonl((pSize + 9)).to_bytes(4, 'big')
 
     pt = b'E'
