@@ -67,9 +67,8 @@ def readTracker():
     table = dict()
 
     # first pass to get size for arrays of tuples of data
-    with open(f"/{args.fileName}", 'r') as ftable:
+    with open(args.fileName, 'r') as ftable:
         lines = ftable.readlines()
-        print(lines)
         for line in lines:
             vals = line.split()
 
