@@ -67,8 +67,8 @@ def readTracker():
 
     # first pass to get size for arrays of tuples of data
     with open(args.fileName, 'r') as ftable:
-        line = ftable.readline()
-        while line:
+        lines = ftable.readlines()
+        for line in lines:
             vals = line.split()
 
             # check if it is the right emulator
@@ -81,9 +81,6 @@ def readTracker():
                 table[destKey] = list()
             # add string values to array
             table[destKey].append(((socket.gethostbyname(vals[4]), int(vals[5])), int(vals[6]), int(vals[7]) / 100))
-
-            # get new line
-            line = ftable.readline()
 
 # write logs
 def logPacket(pack, recAddr, destAddr, recTime, reason):
