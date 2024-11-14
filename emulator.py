@@ -107,6 +107,8 @@ def queuePacket(pack, addr, time):
     destKey = (ipaddress.ip_address(destIP), destPort)
 
     global table
+    print(destKey)
+    print(table.keys())
     tableEnt = table.get(destKey)
 
     if tableEnt is None:
