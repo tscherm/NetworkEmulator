@@ -202,6 +202,7 @@ def cleanup():
     sys.exit()
 
 def main():
+    readTracker()
     getPackets()
     cleanup()
 
