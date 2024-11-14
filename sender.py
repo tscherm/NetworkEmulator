@@ -281,6 +281,7 @@ def waitListen():
     while isListening:
         try:
             data, addr = recSoc.recvfrom(4096)
+            print("PACKET RECIEVED")
             handleReq(data, addr[0])
             isListening = False
         except BlockingIOError:

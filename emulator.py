@@ -143,6 +143,7 @@ def queuePacket(pack, addr, time):
 # return 0 if no packet is in queue or if a packet is being waited on
 # return -1 if there is an error
 def sendPacket():
+    print("SENDING")
     for q in queue:
         # check if there are packets in this queue
         if len(q) <= 0:
