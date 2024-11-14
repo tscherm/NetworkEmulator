@@ -77,7 +77,7 @@ def sendReq(destIP, port):
     l2Packet = header + payload
 
     # new sender stuff
-    l3Prior = socket.htonl(args.priority).to_bytes(1, 'big')
+    l3Prior = socket.htonl(1).to_bytes(1, 'big')
     srcAdr = socket.htonl(ipaddress.ip_address(ipAddr)).to_bytes(4, 'big') + socket.htonl(args.port).to_bytes(2, 'big')
     destAdr = socket.htonl(ipaddress.ip_address(destIP)).to_bytes(4, 'big') + socket.htonl(port).to_bytes(2, 'big')
     l3Len = socket.htonl((l + 9)).to_bytes(4, 'big')
@@ -130,7 +130,7 @@ def sendAck(destIP, port, seq):
     l2Packet = header
 
     # new sender stuff
-    l3Prior = socket.htonl(args.priority).to_bytes(1, 'big')
+    l3Prior = socket.htonl(1).to_bytes(1, 'big')
     srcAdr = socket.htonl(ipaddress.ip_address(ipAddr)).to_bytes(4, 'big') + socket.htonl(args.port).to_bytes(2, 'big')
     destAdr = socket.htonl(ipaddress.ip_address(destIP)).to_bytes(4, 'big') + socket.htonl(port).to_bytes(2, 'big')
     l3Len = socket.htonl((l + 9)).to_bytes(4, 'big')
