@@ -273,14 +273,18 @@ def handleReq(pack, addr):
 # fucntion to listen for packets and send packets elsewhere
 def waitListen():
     print("SENDER STARTED")
+    # make sure the code exits properly
+    isListening = True
     # only need to listen and get one request
-    try:
-        data, addr = recSoc.recvfrom(4096)
-        handleReq(data, addr[0])
-    except BlockingIOError:
-        pass # do nothing
-    except:
-        print("Something went wrong listening for packets.")
+    while isListening:
+        try:
+            data, addr = recSoc.recvfrom(4096)
+            handleReq(data, addr[0])
+            isListening = False
+        except BlockingIOError:
+            pass # do nothing
+        except:
+            print("Something went wrong listening for packets.")
 
 
 def cleanup():
