@@ -228,6 +228,9 @@ def printSummary(addr, numP, numB, pps, ms):
 # takes IP that it should be coming from and gets it's port
 # also takes number of bytes it expects to recieve
 def waitListen(ipToListenFor, senderPackList):
+
+    print("REQUESTER STARTED")
+
     isListening = True
     currAddr = ('', 0)
     totalDataPackets = 0

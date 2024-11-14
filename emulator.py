@@ -173,6 +173,7 @@ def sendPacket():
 # wait for packets
 # step 1 and controls other steps
 def getPackets():
+    print("EMULATOR STARTED")
     while isListening:
         try:
             # try to recieve packet and handle it

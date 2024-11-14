@@ -272,6 +272,7 @@ def handleReq(pack, addr):
 
 # fucntion to listen for packets and send packets elsewhere
 def waitListen():
+    print("SENDER STARTED")
     # only need to listen and get one request
     try:
         data, addr = recSoc.recvfrom(4096)
@@ -283,7 +284,6 @@ def waitListen():
 
 
 def cleanup():
-    toSend.close()
     recSoc.close()
     sys.exit()
 
