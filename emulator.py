@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import traceback
 import logging
 import random
+import ipaddress
 
 parser = argparse.ArgumentParser(description="Network Emulator")
 
@@ -50,7 +51,7 @@ except:
 # socket to send from (not the same one)
 sendSoc = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-# these lists will have (packet, (destIP, destSoc), timeToSend)
+# these lists will have (packet, (destIP, destSoc), timeToSend, nextHop)
 queue = [list(), list(), list()]
 
 # variable for determining if emulator should keep listening for packets
@@ -76,11 +77,11 @@ def readTracker():
                 continue
 
             # check if the value exists in the dictionary
-            destKey = (socket.gethostbyname(vals[2]), vals[3])
+            destKey = (ipaddress.ipaddress(vals[2]), int(vals[3]))
             if table.get(destKey) is None:
                 table[destKey] = list()
             # add string values to array
-            table[destKey].append(((socket.gethostbyname(vals[4]), int(vals[5])), int(vals[6]), int(vals[7]) / 100))
+            table[destKey].append(((ipaddress.ipaddress(vals[4]), int(vals[5])), int(vals[6]), int(vals[7]) / 100))
 
 # write logs
 def logPacket(pack, recAddr, destAddr, recTime, reason):
@@ -103,7 +104,7 @@ def queuePacket(pack, addr, time):
     # check if it is in the forwarding table
     destIP = socket.ntohl(int.from_bytes(pack[7:11], 'big'))
     destPort = socket.ntohl(int.from_bytes(pack[11:13], 'big'))
-    destKey = (destIP, destPort)
+    destKey = (ipaddress.ipaddress(destIP), destPort)
 
     global table
     tableEnt = table.get(destKey)
@@ -132,6 +133,7 @@ def queuePacket(pack, addr, time):
         # drop packet (don't add it to queue) and log it
         logPacket(pack, addr, f"{tableEnt[0]}", time, "the queue is full")
         return 0
+    
     
 # look at queue and find a packet to send if one is available
 # steps 4 - 7
