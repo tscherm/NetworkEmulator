@@ -106,7 +106,7 @@ def queuePacket(pack, addr, time):
     # check if it is in the forwarding table
     destIP = socket.ntohl(int.from_bytes(pack[7:11], 'big'))
     destPort = socket.ntohl(int.from_bytes(pack[11:13], 'big'))
-    destKey = (socket.gethostbyname(destIP), destPort)
+    destKey = (destIP, destPort)
 
     tableEnt = table.get(destKey)
 
