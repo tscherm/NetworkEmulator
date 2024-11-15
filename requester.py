@@ -72,7 +72,7 @@ def sendReq(destIP, port):
     seq = 0
     l = len(args.fileName)
 
-    header = pt + socket.htonl(seq).to_bytes(4, 'big') + socket.htonl(l).to_bytes(4, 'big')
+    header = pt + socket.htonl(seq).to_bytes(4, 'big') + socket.htonl(int(args.window)).to_bytes(4, 'big')
     payload = args.fileName.encode('utf-8')
     l2Packet = header + payload
 
@@ -211,7 +211,7 @@ def handlePacket(pack, addr, time, senderPackList):
     finalSizeBytes += pLen
 
     # supress this
-    # printPacket("DATA", time, addr[0], addr[1], seqNo, pLen, currSizeBytes / finalSizeBytes, payload)
+    printPacket("DATA", time, addr[0], addr[1], seqNo, pLen, currSizeBytes / finalSizeBytes, payload)
 
 
     return True

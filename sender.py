@@ -75,6 +75,7 @@ def printPacket(ptype, time, destAddr, seqNo, length, payload):
 
 # send packet with respect to time
 def sendPacketTimed(packet):
+    print("Trying to send")
     global lastTimeSent
     # wait for time to be ready to send 
     while ((datetime.now() - lastTimeSent) < mspp):
@@ -84,6 +85,7 @@ def sendPacketTimed(packet):
     print(type(packet))
     sendSoc.sendto(packet, eAddr)
     lastTimeSent = datetime.now()
+    print("Packet Sent")
 
 def sendWindow(packets):
     # -1 num tries means sucessful send
@@ -240,6 +242,7 @@ def handleReq(pack, addr):
         l3Len = socket.htonl((pSize + 9)).to_bytes(4, 'big')
         packet = l3Prior + srcAdr + destAdr + l3Len + l2Packet
         # for testing
+        print("NEW PACKET PROCESSED")
         print(packet)
 
         packets.append(packet)
@@ -253,6 +256,7 @@ def handleReq(pack, addr):
     global windowSize
     # do -1 so there aren't extra windows sent if len(packets) % 0 = 0
     for i in range((len(packets) - 1) // windowSize):
+        print("Window to be sent")
         sendWindow(packets[i * windowSize: (i + 1) * windowSize], addr)
 
     # send END packet
