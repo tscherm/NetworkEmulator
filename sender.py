@@ -82,10 +82,10 @@ def sendPacketTimed(packet):
         continue
 
     print(packet)
-    print(type(packet))
+    print(eAddr)
     sendSoc.sendto(packet, eAddr)
     lastTimeSent = datetime.now()
-    print("Packet Sent")
+    print("Packet Sent!")
 
 def sendWindow(packets):
     # -1 num tries means sucessful send
@@ -134,6 +134,8 @@ def sendWindow(packets):
         # this also avoids any race conditions
         hasChecked = False
         while sending.is_alive() or not hasChecked:
+
+            hasChecked = True
             # initialize these so they can be used lower down
             data = 0
             addr2 = 0

@@ -246,6 +246,7 @@ def waitListen(ipToListenFor, senderPackList):
 
         try:
             data, addr = soc.recvfrom(4096)
+            print("Recieved")
         except BlockingIOError:
             continue
         except KeyboardInterrupt:
@@ -260,9 +261,13 @@ def waitListen(ipToListenFor, senderPackList):
         # check if it is from the same address for summary
         # check that it is from the right address
         if (addr[0] != ipToListenFor):
+            print(addr[0])
+            print(ipToListenFor)
+            print(type(addr[0]))
+            print(type(ipToListenFor))
             continue
         # check if it has even been set yet
-        elif (currAddr == ('', 0) and addr[0] == ipToListenFor):
+        elif (currAddr == ('', 0)):
             currAddr = addr
         
         isListening = handlePacket(data, addr, now, senderPackList)

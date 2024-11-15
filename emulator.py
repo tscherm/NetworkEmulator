@@ -107,8 +107,6 @@ def queuePacket(pack, addr, time):
     destKey = (ipaddress.ip_address(destIP), destPort)
 
     global table
-    print(destKey)
-    print(table.keys())
     tableEnt = table.get(destKey)[0]
 
     if tableEnt is None:
@@ -156,9 +154,6 @@ def sendPacket():
             # try to send packet
             try:
                 print("trying to send")
-                print(toSend[0][17])
-                print(toSend[3])
-                print(random.random())
                 # 'R' = 82 'E' = 69
                 if (toSend[0][17] == 82 or toSend[0][17] == 69) or random.random() >= toSend[3]:
                     recSoc.sendto(toSend[0], (str(toSend[1][0]), toSend[1][1]))
