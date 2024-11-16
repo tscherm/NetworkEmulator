@@ -262,11 +262,7 @@ def waitListen(ipToListenFor, senderPackList):
 
         # check if it is from the same address for summary
         # check that it is from the right address
-        if (addr[0] != ipToListenFor):
-            print(addr[0])
-            print(ipToListenFor)
-            print(type(addr[0]))
-            print(type(ipToListenFor))
+        if (ipaddress.ip_address(data[1:5]) != ipaddress.ip_address(ipToListenFor)):
             continue
         # check if it has even been set yet
         elif (currAddr == ('', 0)):
