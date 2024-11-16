@@ -41,6 +41,7 @@ except:
     print(traceback.format_exc())
     sys.exit()
 
+
 # get emulator address
 eIpAddr = socket.gethostbyname(args.emulatorName)
 eAddr = (eIpAddr, args.emulatorPort)
@@ -202,8 +203,8 @@ def handlePacket(pack, addr, time, senderPackList):
 
     # check packet type
     # End type
-    print(pType.to_bytes(1, 'big'))
     if (pType.to_bytes(1, 'big') == b'E'):
+        sendAck(ret[1][0], ret[1][1], seqNo)
         printPacket("End", time, addr[0], addr[1], seqNo, pLen, 0, 0)
         return False
     elif (pType.to_bytes(1, 'big') != b'D'):
