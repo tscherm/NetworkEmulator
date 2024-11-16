@@ -84,9 +84,9 @@ def readTracker():
             table[destKey].append(((ipaddress.ip_address(socket.gethostbyname(vals[4])), int(vals[5])), int(vals[6]), int(vals[7]) / 100))
 
 # write logs
-def logPacket(pack, recAddr, destAddr, recTime, reason):
+def logPacket(pack, recAddr, destAddr, reason):
 
-    logging.info(f"Packet recieved at {recTime} and dropped at {datetime.now()} because {reason}.")
+    logging.info(f"Packet dropped at {datetime.now()} because {reason}.")
 
     if destAddr is None:
         logging.info(f"Recieved from: {recAddr}\n")
@@ -112,7 +112,7 @@ def queuePacket(pack, addr, time):
 
     if tableEntry is None:
         # drop (simply don't add to queue) and log
-        logPacket(pack, addr, None, time, "destination is not in forwarding table")
+        logPacket(pack, addr, None, "destination is not in forwarding table")
         return 0
 
     tableEnt = tableEntry[0]
@@ -121,7 +121,7 @@ def queuePacket(pack, addr, time):
     priority = pack[0] - 1
 
     if priority > 2 or priority < 0:
-        logPacket(pack, addr, None, time, "priority was outside of 1, 2, or 3")
+        logPacket(pack, addr, None, "priority was outside of 1, 2, or 3")
         return -1
 
     # check if you can add it
@@ -134,7 +134,7 @@ def queuePacket(pack, addr, time):
         return 1
     else:
         # drop packet (don't add it to queue) and log it
-        logPacket(pack, addr, f"{tableEnt[0]}", time, "the queue is full")
+        logPacket(pack, addr, f"{tableEnt[0]}", "the queue is full")
         return 0
     
     
@@ -157,11 +157,11 @@ def sendPacket():
             # try to send packet
             try:
                 print("trying to send")
-                # 'R' = 82 'E' = 69
-                if (toSend[0][17] == 82 or toSend[0][17] == 69) or random.random() >= toSend[3]:
+                if random.random() >= toSend[3]:
                     recSoc.sendto(toSend[0], (str(toSend[1][0]), toSend[1][1]))
                     print("PACKET SENT")
-
+                else:
+                    logPacket(toSend[0], "N/A", toSend[1], "of chance")
                 # take packet off queue
                 q.pop(0)
                 return 1
