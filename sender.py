@@ -61,6 +61,10 @@ eAddr = (eIpAddr, args.emulatorPort)
 # helper for sendPacketTimed
 lastTimeSent = datetime.now() - timedelta(days=1)
 
+# helpers for packet loss
+packetsDropped = 0
+packetsSent = 0
+
 def printPacket(ptype, time, destAddr, seqNo, length, payload):
     print(f"{ptype} Packet")
     timeStr = (time.strftime("%y-%m-%d %H:%M:%S.%f"))[:-3]
@@ -106,21 +110,37 @@ def sendWindow(packets):
         if packToSend:
             #print("tsi")
             #print(toSendIndex)
-            packToSend = packets[toSendIndex]
-            sending = threading.Thread(target=sendPacketTimed, args=([packToSend]))
-            sending.start()
+            packetToSend = packets[toSendIndex]
 
-            # packet has been sent and is in timeout to be selected to be sent again
-            packToSend = False
-
-            # check if this is its fifth try
-            if numTries[toSendIndex] >= 4:
+            # check if packet has been sent 5 times and remove it
+            if numTries[toSendIndex] >= 5:
+                print("Packet dropped because no ACK was recieved after 5 attemps.")
+                print(packToSend)
                 packets.pop(toSendIndex)
                 numTries.pop(toSendIndex)
                 timeToSend.pop(toSendIndex)
-            else:
-                numTries[toSendIndex] += 1
-                timeToSend[toSendIndex] = datetime.now() + timedelta(milliseconds=int(args.timeout))
+                packToSend = False
+                continue
+
+            sending = threading.Thread(target=sendPacketTimed, args=([packetToSend]))
+            sending.start()
+
+            # increment packet variables
+            numTries[toSendIndex] += 1
+            timeToSend[toSendIndex] = datetime.now() + timedelta(milliseconds=int(args.timeout))
+
+            # increment packets dropped and packets sent
+            global packetsSent 
+            global packetsDropped
+
+            packetsSent += 1
+            if numTries > 0:
+                packetsDropped += 1
+
+
+            # packet has been sent and is in timeout to be selected to be sent again
+            packToSend = False
+            
 
 
         # find next packet to send
@@ -286,6 +306,12 @@ def handleReq(pack, addr):
     sendWindow(packets)
     # print end packet
     printPacket("END", datetime.now(), addr, seqNum, l, 0)
+
+    # print loss rate
+    print(f"PACKETS SENT: {packetsSent}")
+    print(f"PACKETS DROPPED: {packetsDropped}")
+    lossRate = packetsDropped / packetsSent
+    print(f"LOSS RATE: {lossRate * 100} %")
     
 
 # fucntion to listen for packets and send packets elsewhere

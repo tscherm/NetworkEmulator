@@ -93,7 +93,7 @@ def logPacket(pack, recAddr, destAddr, reason):
     else:
         logging.info(f"Recieved from: {recAddr}\nTo be sent to: {destAddr}\n")
 
-    logging.info(f"{pack}")
+    logging.info(f"---------\n{pack}\n---------\n")
 
 # queue the packet and if possible
 # steps 2 & 3
