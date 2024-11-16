@@ -158,7 +158,7 @@ def handleBigPacket(data):
         #wrong place
         return 0
 
-    return data[17:]
+    return (data[17:], (srcIP, srcPort), bigLen)
 
 # add the packet to the specific sender packet list
 # return 1 if packet is added
@@ -196,6 +196,7 @@ def handlePacket(pack, addr, time, senderPackList):
 
     # check packet type
     # End type
+    print(pType.to_bytes(1, 'big'))
     if (pType.to_bytes(1, 'big') == b'E'):
         printPacket("End", time, addr[0], addr[1], seqNo, pLen, 0, 0)
         return False
@@ -215,6 +216,7 @@ def handlePacket(pack, addr, time, senderPackList):
     # supress this
     printPacket("DATA", time, addr[0], addr[1], seqNo, pLen, currSizeBytes / finalSizeBytes, payload)
 
+    sendAck()
 
     return True
 
