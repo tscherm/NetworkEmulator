@@ -154,8 +154,12 @@ def handleBigPacket(data):
     destPort = socket.ntohs(int.from_bytes(data[11:13], 'big'))
     bigLen = socket.ntohl(int.from_bytes(data[13:17], 'big'))
 
-    if destIP != ipAddr or destPort != args.port:
+    if ipaddress.ip_address(destIP) != ipaddress.ip_address(ipAddr) or destPort != args.port:
         #wrong place
+        print(destIP)
+        print(ipAddr)
+        print(destPort)
+        print(args.port)
         return 0
 
     return (data[17:], (srcIP, srcPort), bigLen)
@@ -184,10 +188,12 @@ def recordPacket(payload, seqNo, senderPackList):
 def handlePacket(pack, addr, time, senderPackList):
     # handle big packet
     ret = handleBigPacket(pack)
-    data = ret[0]
 
-    if data == 0:
+    if ret == 0:
         return False
+    
+    
+    data = ret[0]
 
     # get header values
     pType = data[0]
@@ -216,7 +222,7 @@ def handlePacket(pack, addr, time, senderPackList):
     # supress this
     printPacket("DATA", time, addr[0], addr[1], seqNo, pLen, currSizeBytes / finalSizeBytes, payload)
 
-    sendAck()
+    sendAck(ret[1][0], ret[1][1], seqNo)
 
     return True
 
@@ -264,7 +270,9 @@ def waitListen(ipToListenFor, senderPackList):
 
         # check if it is from the same address for summary
         # check that it is from the right address
-        if (ipaddress.ip_address(data[1:5]) != ipaddress.ip_address(ipToListenFor)):
+        if (ipaddress.ip_address(socket.ntohl(int.from_bytes(data[1:5], 'big'))) != ipaddress.ip_address(ipToListenFor)):
+            print(ipaddress.ip_address(data[1:5]))
+            print(ipaddress.ip_address(ipToListenFor))
             continue
         # check if it has even been set yet
         elif (currAddr == ('', 0)):
@@ -278,7 +286,7 @@ def waitListen(ipToListenFor, senderPackList):
     # calculate time and print summary
     end = datetime.now()
     totalTime = (end - start).total_seconds()
-    printSummary(currAddr, totalDataPackets, totalDataPackets / totalTime, totalTime * 1000)
+    printSummary(currAddr, totalDataPackets, totalDataPackets, totalDataPackets / totalTime, totalTime * 1000)
 
 # write payload to file
 # assume no space is needed for missing sequence numbers
