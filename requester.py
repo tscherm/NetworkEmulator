@@ -211,6 +211,7 @@ def handlePacket(pack, addr, time, senderPackList):
 
     payload = data[9:9 + pLen]
     recordPacket(payload, seqNo, senderPackList)
+    print(f"Recording: {payload}")
     # add bytes written and print packet info
     global currSizeBytes
     currSizeBytes += pLen

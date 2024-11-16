@@ -104,6 +104,8 @@ def sendWindow(packets):
 
         # check if there is a new packet to send
         if packToSend:
+            #print("tsi")
+            #print(toSendIndex)
             packToSend = packets[toSendIndex]
             sending = threading.Thread(target=sendPacketTimed, args=([packToSend]))
             sending.start()
@@ -153,9 +155,16 @@ def sendWindow(packets):
             for i in range(len(packets)):
                 # find which one to pop
                 if packets[i][18:22] == seqNo:
-                    packets.pop(toSendIndex)
-                    numTries.pop(toSendIndex)
-                    timeToSend.pop(toSendIndex)
+                    packets.pop(i)
+                    numTries.pop(i)
+                    timeToSend.pop(i)
+
+                    if packToSend and toSendIndex > i:
+                        toSendIndex -= 1
+                    elif packToSend and toSendIndex == i:
+                        packToSend = False
+                    
+                    break
 
 
 # function to get file name and read file and open file
@@ -255,9 +264,9 @@ def handleReq(pack, addr):
 
     global windowSize
     # do -1 so there aren't extra windows sent if len(packets) % 0 = 0
-    for i in range((len(packets) - 1) // windowSize):
+    for i in range(((len(packets) - 1) // windowSize) + 1):
         print("Window to be sent")
-        sendWindow(packets[i * windowSize: (i + 1) * windowSize], addr)
+        sendWindow(packets[i * windowSize: (i + 1) * windowSize])
 
     # send END packet
     # new sender stuff
