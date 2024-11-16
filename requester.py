@@ -85,7 +85,7 @@ def sendReq(destIP, port):
     packet = l3Prior + srcAdr + destAdr + l3Len + l2Packet
 
     soc.sendto(packet, eAddr)
-    print("REQUEST SENT")
+    #print("REQUEST SENT")
 
 # function to readd the tracker
 # Assumed name is tracker.txt
@@ -139,7 +139,7 @@ def sendAck(destIP, port, seq):
     packet = l3Prior + srcAdr + destAdr + l3Len + l2Packet
 
     soc.sendto(packet, eAddr)
-    print("ACK SENT")
+    #print("ACK SENT")
 
 # handle big packet
 # returns small packet
@@ -154,10 +154,10 @@ def handleBigPacket(data):
 
     if ipaddress.ip_address(destIP) != ipaddress.ip_address(ipAddr) or destPort != args.port:
         #wrong place
-        print(destIP)
-        print(ipAddr)
-        print(destPort)
-        print(args.port)
+        #print(destIP)
+        #print(ipAddr)
+        #print(destPort)
+        #print(args.port)
         return 0
 
     return (data[17:], (srcIP, srcPort), bigLen)
@@ -205,7 +205,7 @@ def handlePacket(pack, addr, time, senderPackList):
     # End type
     if (pType.to_bytes(1, 'big') == b'E'):
         sendAck(ret[1][0], ret[1][1], seqNo)
-        printPacket("End", time, addr[0], addr[1], seqNo, pLen, 0, 0)
+        #Packet("End", time, addr[0], addr[1], seqNo, pLen, 0, 0)
         return False
     elif (pType.to_bytes(1, 'big') != b'D'):
         # something went wrong
@@ -214,7 +214,7 @@ def handlePacket(pack, addr, time, senderPackList):
 
     payload = data[9:9 + pLen]
     recordPacket(payload, seqNo, senderPackList)
-    print(f"Recording: {payload}")
+    #print(f"Recording: {payload}")
     # add bytes written and print packet info
     global currSizeBytes
     currSizeBytes += pLen
@@ -222,7 +222,7 @@ def handlePacket(pack, addr, time, senderPackList):
     finalSizeBytes += pLen
 
     # supress this
-    printPacket("DATA", time, addr[0], addr[1], seqNo, pLen, currSizeBytes / finalSizeBytes, payload)
+    #printPacket("DATA", time, addr[0], addr[1], seqNo, pLen, currSizeBytes / finalSizeBytes, payload)
 
     sendAck(ret[1][0], ret[1][1], seqNo)
 
@@ -244,7 +244,7 @@ def printSummary(addr, numP, numB, pps, ms):
 # also takes number of bytes it expects to recieve
 def waitListen(ipToListenFor, senderPackList):
 
-    print("REQUESTER STARTED")
+    #print("REQUESTER STARTED")
 
     isListening = True
     currAddr = ('', 0)
@@ -258,13 +258,13 @@ def waitListen(ipToListenFor, senderPackList):
 
         try:
             data, addr = soc.recvfrom(4096)
-            print("Recieved")
+            #print("Recieved")
         except BlockingIOError:
             continue
         except KeyboardInterrupt:
             sys.exit()
         except:
-            print("Something went wrong listening for packets")
+            #print("Something went wrong listening for packets")
             continue
 
         
@@ -286,16 +286,17 @@ def waitListen(ipToListenFor, senderPackList):
     # calculate time and print summary
     end = datetime.now()
     totalTime = (end - start).total_seconds()
-    printSummary(currAddr, totalDataPackets, totalDataPackets, totalDataPackets / totalTime, totalTime * 1000)
+    #printSummary(currAddr, totalDataPackets, totalDataPackets, totalDataPackets / totalTime, totalTime * 1000)
 
 # write payload to file
 # assume no space is needed for missing sequence numbers
 def writePayloadToFile():
-    print(packetsFromSenders)
-    for s in packetsFromSenders:
-        for p in s:
-            #toWrite.write(p[1].decode('utf-8'))
-            pass
+    #print(packetsFromSenders)
+    with open(args.fileName, 'w') as toWrite:
+        for s in packetsFromSenders:
+            for p in s:
+                toWrite.write(p[1].decode('utf-8'))
+            
 
 # gets file from tracker and sends requests to each host in list
 def getFile(fileName):
