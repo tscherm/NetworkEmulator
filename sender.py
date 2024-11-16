@@ -279,6 +279,7 @@ def handleReq(pack, addr):
 
     packet = l3Prior + srcAdr + destAdr + l3Len + l2Packet
 
+    packets = list()
     packets.append(packet)
     sendWindow(packets)
     # print end packet
