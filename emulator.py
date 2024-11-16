@@ -156,10 +156,8 @@ def sendPacket():
         if toSend[2] < datetime.now():
             # try to send packet
             try:
-                print("trying to send")
                 if random.random() >= toSend[3]:
                     recSoc.sendto(toSend[0], (str(toSend[1][0]), toSend[1][1]))
-                    print("PACKET SENT")
                 else:
                     logPacket(toSend[0], "N/A", toSend[1], "of chance")
                 # take packet off queue
@@ -180,12 +178,10 @@ def sendPacket():
 # wait for packets
 # step 1 and controls other steps
 def getPackets():
-    print("EMULATOR STARTED")
     while isListening:
         try:
             # try to recieve packet and handle it
             data, addr = recSoc.recvfrom(4096)
-            print("PACKET RECIEVED")
             queuePacket(data, addr, datetime.now())
         except BlockingIOError:
             pass # skip down to sendPacket()

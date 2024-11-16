@@ -79,7 +79,6 @@ def printPacket(ptype, time, destAddr, seqNo, length, payload):
 
 # send packet with respect to time
 def sendPacketTimed(packet):
-    print("Trying to send")
     global lastTimeSent
     # wait for time to be ready to send 
     while ((datetime.now() - lastTimeSent) < mspp):
@@ -87,7 +86,6 @@ def sendPacketTimed(packet):
 
     sendSoc.sendto(packet, eAddr)
     lastTimeSent = datetime.now()
-    print("Packet Sent!")
 
 def sendWindow(packets):
     # -1 num tries means sucessful send
@@ -167,7 +165,7 @@ def sendWindow(packets):
             except KeyboardInterrupt:
                 sys.exit()
             except:
-                print("Something when wrong when listening for ACK")
+                print("Something went wrong when listening for ACK")
 
             seqNo = data[18:22]
 
@@ -271,8 +269,6 @@ def handleReq(pack, addr):
         l3Len = socket.htonl((pSize + 9)).to_bytes(4, 'big')
         packet = l3Prior + srcAdr + destAdr + l3Len + l2Packet
         # for testing
-        print("NEW PACKET PROCESSED")
-        print(seqNum)
 
         packets.append(packet)
 
@@ -285,7 +281,6 @@ def handleReq(pack, addr):
     global windowSize
     # do -1 so there aren't extra windows sent if len(packets) % 0 = 0
     for i in range(((len(packets) - 1) // windowSize) + 1):
-        print("Window to be sent")
         sendWindow(packets[i * windowSize: (i + 1) * windowSize])
 
     # send END packet
@@ -305,7 +300,7 @@ def handleReq(pack, addr):
     packets.append(packet)
     sendWindow(packets)
     # print end packet
-    printPacket("END", datetime.now(), addr, seqNum, l, 0)
+    #printPacket("END", datetime.now(), addr, seqNum, l, 0)
 
     # print loss rate
     print(f"PACKETS SENT: {packetsSent}")
@@ -316,14 +311,12 @@ def handleReq(pack, addr):
 
 # fucntion to listen for packets and send packets elsewhere
 def waitListen():
-    print("SENDER STARTED")
     # make sure the code exits properly
     isListening = True
     # only need to listen and get one request
     while isListening:
         try:
             data, addr = recSoc.recvfrom(4096)
-            print("PACKET RECIEVED")
             handleReq(data, addr[0])
             isListening = False
         except BlockingIOError:
