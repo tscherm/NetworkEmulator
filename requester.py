@@ -154,10 +154,6 @@ def handleBigPacket(data):
 
     if ipaddress.ip_address(destIP) != ipaddress.ip_address(ipAddr) or destPort != args.port:
         #wrong place
-        #print(destIP)
-        #print(ipAddr)
-        #print(destPort)
-        #print(args.port)
         return 0
 
     return (data[17:], (srcIP, srcPort), bigLen)
