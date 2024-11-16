@@ -35,7 +35,8 @@ except:
 # open file to write to
 # this also creates a file assuming it is not there or overwrites it if it exists
 try:
-    toWrite = open(args.fileName, 'w')
+    #toWrite = open(args.fileName, 'w')
+    pass
 except:
     print(f"There was an issue opening the file {args.fileName}")
     print(traceback.format_exc())
@@ -289,7 +290,8 @@ def writePayloadToFile():
     print(packetsFromSenders)
     for s in packetsFromSenders:
         for p in s:
-            toWrite.write(p[1].decode('utf-8'))
+            #toWrite.write(p[1].decode('utf-8'))
+            pass
 
 # gets file from tracker and sends requests to each host in list
 def getFile(fileName):
@@ -307,7 +309,7 @@ def getFile(fileName):
 
 # function to clean and close all parts of the project
 def cleanup():
-    toWrite.close()
+    #toWrite.close()
     soc.close()
     sys.exit()
 
