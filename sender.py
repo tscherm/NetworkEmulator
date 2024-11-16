@@ -124,18 +124,18 @@ def sendWindow(packets):
 
             sending = threading.Thread(target=sendPacketTimed, args=([packetToSend]))
             sending.start()
-
-            # increment packet variables
-            numTries[toSendIndex] += 1
-            timeToSend[toSendIndex] = datetime.now() + timedelta(milliseconds=int(args.timeout))
-
+            
             # increment packets dropped and packets sent
             global packetsSent 
             global packetsDropped
 
             packetsSent += 1
-            if numTries > 0:
+            if numTries[toSendIndex] > 0:
                 packetsDropped += 1
+
+            # increment packet variables
+            numTries[toSendIndex] += 1
+            timeToSend[toSendIndex] = datetime.now() + timedelta(milliseconds=int(args.timeout))
 
 
             # packet has been sent and is in timeout to be selected to be sent again
