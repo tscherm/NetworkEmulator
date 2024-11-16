@@ -140,6 +140,7 @@ def sendAck(destIP, port, seq):
     packet = l3Prior + srcAdr + destAdr + l3Len + l2Packet
 
     soc.sendto(packet, eAddr)
+    print("ACK SENT")
 
 # handle big packet
 # returns small packet
