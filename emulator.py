@@ -105,12 +105,9 @@ def queuePacket(pack, addr, time):
     destIP = socket.ntohl(int.from_bytes(pack[7:11], 'big'))
     destPort = socket.ntohs(int.from_bytes(pack[11:13], 'big'))
     destKey = (ipaddress.ip_address(destIP), destPort)
-    print('AAAAAAAAAAAAA')
-    print(destIP)
 
 
     global table
-    print(table.keys())
     tableEntry = table.get(destKey)
 
     if tableEntry is None:
@@ -164,7 +161,6 @@ def sendPacket():
                 if (toSend[0][17] == 82 or toSend[0][17] == 69) or random.random() >= toSend[3]:
                     recSoc.sendto(toSend[0], (str(toSend[1][0]), toSend[1][1]))
                     print("PACKET SENT")
-                    print(toSend[1])
 
                 # take packet off queue
                 q.pop(0)
@@ -190,8 +186,6 @@ def getPackets():
             # try to recieve packet and handle it
             data, addr = recSoc.recvfrom(4096)
             print("PACKET RECIEVED")
-            print(data)
-            print(addr)
             queuePacket(data, addr, datetime.now())
         except BlockingIOError:
             pass # skip down to sendPacket()

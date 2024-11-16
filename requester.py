@@ -41,7 +41,6 @@ except:
     print(traceback.format_exc())
     sys.exit()
 
-
 # get emulator address
 eIpAddr = socket.gethostbyname(args.emulatorName)
 eAddr = (eIpAddr, args.emulatorPort)
@@ -86,9 +85,6 @@ def sendReq(destIP, port):
 
     soc.sendto(packet, eAddr)
     print("REQUEST SENT")
-    print(packet)
-    print(eAddr)
-    print(ipAddr)
 
 # function to readd the tracker
 # Assumed name is tracker.txt
@@ -204,7 +200,6 @@ def handlePacket(pack, addr, time, senderPackList):
     # check packet type
     # End type
     if (pType.to_bytes(1, 'big') == b'E'):
-        sendAck(ret[1][0], ret[1][1], seqNo)
         printPacket("End", time, addr[0], addr[1], seqNo, pLen, 0, 0)
         return False
     elif (pType.to_bytes(1, 'big') != b'D'):
@@ -272,8 +267,6 @@ def waitListen(ipToListenFor, senderPackList):
         # check if it is from the same address for summary
         # check that it is from the right address
         if (ipaddress.ip_address(socket.ntohl(int.from_bytes(data[1:5], 'big'))) != ipaddress.ip_address(ipToListenFor)):
-            print(ipaddress.ip_address(data[1:5]))
-            print(ipaddress.ip_address(ipToListenFor))
             continue
         # check if it has even been set yet
         elif (currAddr == ('', 0)):
