@@ -202,6 +202,9 @@ def handleBigPacket(data):
     # get name size
     nameLen = bigLen - 9
 
+    print("AAAAAAA")
+    print(srcIP)
+
     return (data[17:], nameLen, (srcIP, srcPort))
 
 # handle request packet
@@ -244,6 +247,7 @@ def handleReq(pack, addr):
         destAdr = socket.htonl(reqDest[0]).to_bytes(4, 'big') + socket.htons(args.rPort).to_bytes(2, 'big')
         l3Len = socket.htonl((pSize + 9)).to_bytes(4, 'big')
         packet = l3Prior + srcAdr + destAdr + l3Len + l2Packet
+        print(reqDest[0])
         # for testing
         print("NEW PACKET PROCESSED")
         print(packet)

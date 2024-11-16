@@ -87,6 +87,7 @@ def sendReq(destIP, port):
     print("REQUEST SENT")
     print(packet)
     print(eAddr)
+    print(ipAddr)
 
 # function to readd the tracker
 # Assumed name is tracker.txt
