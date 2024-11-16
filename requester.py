@@ -200,6 +200,7 @@ def handlePacket(pack, addr, time, senderPackList):
     # check packet type
     # End type
     if (pType.to_bytes(1, 'big') == b'E'):
+        sendAck(ret[1][0], ret[1][1], seqNo)
         printPacket("End", time, addr[0], addr[1], seqNo, pLen, 0, 0)
         return False
     elif (pType.to_bytes(1, 'big') != b'D'):
@@ -285,6 +286,7 @@ def waitListen(ipToListenFor, senderPackList):
 # write payload to file
 # assume no space is needed for missing sequence numbers
 def writePayloadToFile():
+    print(packetsFromSenders)
     for s in packetsFromSenders:
         for p in s:
             toWrite.write(p[1].decode('utf-8'))
