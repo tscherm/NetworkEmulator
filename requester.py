@@ -179,6 +179,9 @@ def recordPacket(payload, seqNo, senderPackList):
             senderPackList.insert(i+1, (seqNo, payload))
             return 1
 
+    # add packet if there is nothing in the array yet
+    if len(senderPackList) <= 0:
+        senderPackList.append((seqNo, payload))
 
 # handles a packet from sender
 # returns false if it gets something other than data packet (End packet or wrong dest)
