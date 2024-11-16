@@ -125,10 +125,9 @@ def sendWindow(packets):
 
         # find next packet to send
         for i in range(len(packets)):
-            if timeToSend[i] >= datetime.now():
+            if timeToSend[i] <= datetime.now():
                 toSendIndex = i
                 packToSend = True
-                break
 
         # wait on send thread to return
         # this also avoids any race conditions
