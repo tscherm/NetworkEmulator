@@ -202,7 +202,7 @@ def handleBigPacket(data):
     # get name size
     nameLen = bigLen - 9
 
-    return (data[17:], nameLen)
+    return (data[17:], nameLen, (srcIP, srcPort))
 
 # handle request packet
 def handleReq(pack, addr):
@@ -211,6 +211,7 @@ def handleReq(pack, addr):
 
     data = ret[0]
     nameLen = ret[1]
+    reqDest = ret[2]
 
     # check that it is a request packet
     # 'R' = 82
@@ -240,7 +241,7 @@ def handleReq(pack, addr):
         # new sender stuff
         l3Prior = int(args.priority).to_bytes()
         srcAdr = socket.htonl(int(ipaddress.ip_address(ipAddr))).to_bytes(4, 'big') + socket.htons(args.sPort).to_bytes(2, 'big')
-        destAdr = socket.htonl(int(ipaddress.ip_address(addr))).to_bytes(4, 'big') + socket.htons(args.rPort).to_bytes(2, 'big')
+        destAdr = socket.htonl(reqDest[0]).to_bytes(4, 'big') + socket.htons(args.rPort).to_bytes(2, 'big')
         l3Len = socket.htonl((pSize + 9)).to_bytes(4, 'big')
         packet = l3Prior + srcAdr + destAdr + l3Len + l2Packet
         # for testing
